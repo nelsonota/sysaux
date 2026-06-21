@@ -1,0 +1,568 @@
+FUNCTION TECNICA()
+LOCAL TELA,OP,GETLIST:={},TELA2,OP2
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,TRABALHO,NOMSEN
+MEMVAR FICHA,RECEBE,CLIFOR,DATENT,ITEM,ORCAMENT,DATORC,DATPAG
+MEMVAR DATAPR,DATEXE,DATEXE2,DATSAI,MECVEN,GARANTIA,VALMO,VALITOT,NOTA,NFS
+MEMVAR MARCA,MODELO,COR,ANO,NSERIE,AVAR1,AVAR2,AVAR3,SOLICLI1,SOLICLI2,SOLICLI3
+MEMVAR ORIENT1,ORIENT2,ORIENT3,TANQUE,PLACA,VALTERC,VALOUTRO,SERV
+MEMVAR MODULO,TIPOKM,QTDKM,DATGAR
+
+TELA:=SAVESCREEN()
+DBF_CONFIG()
+DBF_CLIFOR()
+DBF_TECNICA()
+DBF_2TECNICA()
+DBF_TECFAT()
+DBF_MECVEN()
+DBF_ESTOQUE()
+DBF_SERV()
+WINDOW(22,0,24,67)
+WINDOW(0,0,22,79)
+@ 23,67 SAY CHR(219)
+MODULO:="tecnica"
+DO WHILE .T.
+   MECVEN->(DBSETORDER(1))
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   @ 1,1 CLEAR TO 21,78
+   FICHA  :=TECNICA->CODIGO_V
+   CLIFOR  :=TECNICA->CLIFOR_V
+   ITEM    :=TECNICA->ITEM_V
+   ORCAMENT:=TECNICA->ORCAMENT_V
+   DATENT  :=TECNICA->DATENT_V
+   DATORC  :=TECNICA->DATORC_V
+   DATAPR  :=TECNICA->DATAPR_V
+   DATEXE  :=TECNICA->DATEXE_V
+   DATEXE2 :=TECNICA->DATEXE2_V
+   DATSAI  :=TECNICA->DATSAI_V
+   DATPAG  :=TECNICA->DATPAG_V
+   DATGAR  :=TECNICA->DATGAR_V
+   SERV    :=TECNICA->SERV_V
+   MECVEN  :=TECNICA->MECVEN_V
+   GARANTIA:=TECNICA->GARANTIA_V
+   VALMO   :=TECNICA->VALMO_V
+   VALTERC :=TECNICA->VALTERC_V
+   VALOUTRO:=TECNICA->VALOUTRO_V
+   VALITOT :=TECNICA->VALITOT_V
+   NOTA    :=TECNICA->NOTA_V
+   NFS     :=TECNICA->NFS_V
+   MARCA   :=TECNICA->MARCA_V
+   MODELO  :=TECNICA->MODELO_V
+   ANO     :=TECNICA->ANO_V
+   COR     :=TECNICA->COR_V
+   NSERIE  :=TECNICA->NSERIE_V
+   QTDKM   :=TECNICA->QTDKM_V
+   TIPOKM  :=TECNICA->TIPOKM_V
+   TANQUE  :=TECNICA->TANQUE_V
+   PLACA   :=TECNICA->PLACA_V
+   AVAR1   :=TECNICA->AVAR1_V
+   AVAR2   :=TECNICA->AVAR2_V
+   AVAR3   :=TECNICA->AVAR3_V
+   SOLICLI1:=TECNICA->SOLICLI1_V
+   SOLICLI2:=TECNICA->SOLICLI2_V
+   SOLICLI3:=TECNICA->SOLICLI3_V
+   ORIENT1 :=TECNICA->ORIENT1_V
+   ORIENT2 :=TECNICA->ORIENT2_V
+   ORIENT3 :=TECNICA->ORIENT3_V
+   @ 1,1 CLEAR TO 1,78
+   @ 1,2   SAY "Ficha      : "+FICHA
+   //IF ! EMPTY(DATSAI)
+   //   IF ! EMPTY(DATPAG)
+   //      @ 1,57 SAY "Fechado em " + DTOC(DATPAG)
+   //   ELSE
+   //      @ 1,70 SAY "Pendente" COLOR CORTIT
+   //   ENDIF
+   //ENDIF
+   @ 1,21  SAY IF(EMPTY(GARANTIA).OR."N"$TECNICA->GARANTIA_V,"","Garantia : "+ GARANTIA)
+   @ 2,1   TO  2,78
+   @ 3,1   SAY PADR(" Dados Cadastrais",78) COLOR CORTIT
+   @ 4,1   TO  4,78
+   @ 5,2   SAY "Cliente    : "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->NOME_V,SPACE(50))
+   @ 6,2   SAY "Endere‡o   : "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->ENDERECO_V,SPACE(50))
+   @ 7,2   SAY "RG/Ins.Est.: "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->RGINSEST_V,SPACE(15))
+   @ 7,45  SAY "CGC/CPF: "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->CGCCPF_V,SPACE(18))
+   @ 8,2   SAY "Fone1      : " + IF(CLIFOR->(DBSEEK(CLIFOR)),TRANSFORM(CLIFOR->FONE1_V,"@R (#999) ##99-9999"),SPACE(16))
+   @ 8,32  SAY "Fone2: " + IF(CLIFOR->(DBSEEK(CLIFOR)),TRANSFORM(CLIFOR->FONE2_V,"@R (#999) ##99-9999"),SPACE(16))
+   @ 8,56  SAY "Fax: "       + IF(CLIFOR->(DBSEEK(CLIFOR)),TRANSFORM(CLIFOR->FAX_V,"@R (#999) ##99-9999"),SPACE(16))
+   @ 09,2  SAY "Contato    : "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->CONTATO_V,SPACE(50))
+   @ 10,1  TO  10,78
+   @ 11,1  SAY PADR(" Dados do Servi‡o",78) COLOR CORTIT
+   @ 12,2  SAY "Servi‡o para: "+TRIM(ITEM)+" "+TRIM(MARCA)+" "+TRIM(MODELO)+" "+TRIM(PLACA)
+   @ 13,02 SAY IF(ORCAMENT="S","Passar Or‡amento","Executar Direto")
+   @ 14,02 SAY "Servi‡o     : "+TECNICA->SERV_V+" "+IF(SERV->(DBSEEK(TECNICA->SERV_V)),SERV->NOME_V,SPACE(LEN(SERV->NOME_V)))
+   @ 14,79 SAY CHR(219)
+   @ 14,36 SAY "T‚cnico     : "+ IF(MECVEN->(DBSEEK(MECVEN)),LEFT(MECVEN->NOME_V,10),SPACE(10))
+   @ 15,2  SAY "Mao de Obra : "+TRANSFORM(IF(EMPTY(GARANTIA).OR.ALLTRIM(UPPER(GARANTIA))="N".OR.ALLTRIM(UPPER(GARANTIA))="NAO",VALMO,0),"@R 999,999,999.99")
+   @ 15,36 SAY "Vl.dos Itens: "+TRANSFORM(IF(EMPTY(GARANTIA).OR.ALLTRIM(UPPER(GARANTIA))="N".OR.ALLTRIM(UPPER(GARANTIA))="NAO",VALITOT,0),"@R 999,999,999.99")
+   @ 16,02 SAY "Terceiros   : "+TRANSFORM(IF(EMPTY(GARANTIA).OR.ALLTRIM(UPPER(GARANTIA))="N".OR.ALLTRIM(UPPER(GARANTIA))="NAO",VALTERC,0),"@R 999,999,999.99")
+   @ 16,36 SAY "Outros      : " +TRANSFORM(IF(EMPTY(GARANTIA).OR.ALLTRIM(UPPER(GARANTIA))="N".OR.ALLTRIM(UPPER(GARANTIA))="NAO",VALOUTRO,0),"@R 999,999,999.99")
+   @ 17,2  SAY "Valor Total : "+TRANSFORM(IF(EMPTY(GARANTIA).OR.ALLTRIM(UPPER(GARANTIA))="N".OR.ALLTRIM(UPPER(GARANTIA))="NAO",VALMO+VALOUTRO+VALTERC+VALITOT,0),"@R 999,999,999.99")
+   @ 17,36 SAY "Nota Fiscal : "+STRZERO(NOTA,6,0)
+   @ 17,57 SAY "NFS: "+STRZERO(NFS,6,0)
+   @ 18,1  TO  18,78
+   @ 19,1  SAY PADR(" Movimento do Servi‡o"+IF(!EMPTY(DATGAR),"                Garantia v lida at‚ "+DTOC(DATGAR),""),78) COLOR CORTIT
+   @ 20,02 SAY "Entrada   em : " + DTOC(DATENT)
+   @ 20,28 SAY "Or‡amento em : " + DTOC(DATORC)
+   @ 20,53 SAY " Aprovado em : " + DTOC(DATAPR)
+   @ 21,02 SAY "Sa¡da Pe‡as  : " + DTOC(DATEXE)
+   @ 21,28 SAY "Executado em : " + DTOC(DATEXE2)
+   @ 21,53 SAY " Entregue em : " + DTOC(DATSAI)
+   IF ! EMPTY(DATSAI)
+      @ 21,68 SAY DATSAI COLOR CORTIT
+   ELSE
+      IF ! EMPTY(DATEXE2)
+         @ 21,43 SAY DATEXE2 COLOR CORTIT
+      ELSE
+         IF ! EMPTY(DATEXE)
+            @ 21,17 SAY DATEXE COLOR CORTIT
+         ELSE
+            IF ! EMPTY(DATAPR)
+               @ 20,68 SAY DATAPR COLOR CORTIT
+            ELSE
+               IF ! EMPTY(DATORC)
+                  @ 20,43 SAY DATORC COLOR CORTIT
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDIF
+   ENDIF
+   @ 23,1  PROMPT " Busca "
+   @ 23,8  PROMPT " Cadastro "
+   @ 23,18 PROMPT " Movimentos "
+   @ 23,30 PROMPT " Complemento "
+   @ 23,43 PROMPT " Impressao "
+   @ 23,54 PROMPT " Faturamento "
+   SET KEY -2 TO T_CLIFOR(,,,"TECNICA")
+   MENU TO OP
+   SET KEY -2 TO
+   DO CASE
+      CASE OP=1
+         BTECNICA()
+      CASE OP=2
+         MNTECCAD()
+      CASE OP=3
+         MNTECMOV()
+      CASE OP=4
+         TELA2:=SAVESCREEN()
+         @ 01,01 CLEAR TO 21,78
+         @ 01,01 SAY PADC("Descri‡ao do Servi‡o … Executar",78) COLOR CORTIT
+         @ 02,01 TO 02,78
+         @ 03,02 SAY "Servi‡o para : "+ITEM
+         @ 03,43 SAY "Marca : "+ MARCA
+         @ 04,02 SAY "Modelo       : "+ MODELO
+         @ 04,45 SAY "Ano : " + ANO
+         @ 05,02 SAY "Cor          : " + COR
+         IF CONFIG->KMSERIE_V="S"
+            @ 05,39 SAY "N§. S‚rie :" + NSERIE
+         ELSE
+            @ 05,43 SAY "Km-Ml : " + TIPOKM+TRANSFORM(QTDKM,"@R 999999.9")
+         ENDIF
+         @ 06,02 SAY "Placa/Patrim.: " + PLACA
+         @ 06,42 SAY "Tanque : " + TANQUE
+         FUEL2(TANQUE)
+         @ 07,01 TO 07,78
+         @ 08,01 SAY PADC("Avarias / Observa‡oes",78) COLOR CORTIT
+         @ 09,02 SAY AVAR1
+         @ 10,02 SAY AVAR2
+         @ 11,02 SAY AVAR3
+         @ 12,01 TO 12,78
+         @ 13,01 SAY PADC("Servi‡os Solicitados pelo Cliente",78) COLOR CORTIT
+         @ 14,02 SAY SOLICLI1
+         @ 15,02 SAY SOLICLI2
+         @ 16,02 SAY SOLICLI3
+         @ 17,01 TO 17,78
+         @ 18,01 SAY PADC("Orienta‡ao ao Mecƒnico / Servi‡os … Executar",78) COLOR CORTIT
+         @ 19,02 SAY ORIENT1
+         @ 20,02 SAY ORIENT2
+         @ 21,02 SAY ORIENT3
+         INKEY(0)
+         RESTSCREEN(,,,,TELA2)
+      CASE OP=5
+         TELA2:=SAVESCREEN()
+         WINDOW(19,43,23,63)
+         @ 20,44 PROMPT " Or‡amento         "
+         @ 21,44 PROMPT " Ficha de Recep‡ao "
+         @ 22,44 PROMPT " Ficha de Sa¡da    "
+         MENU TO OP2
+         DO CASE
+            CASE OP2=1
+               IF CONFIRMA(20,20,"Deseja imprimir o or‡amento ?")
+                  IMPORC()
+               ENDIF
+            CASE OP2=2
+               IF CONFIRMA(20,20,"Deseja imprimir a ficha de recep‡ao ?")
+                  IMPRECEPCAO()
+               ENDIF
+            CASE OP2=3
+               IF EMPTY(TECNICA->DATSAI_V)
+                  AVISO(" necess rio q o servi‡o seja entregue primeiro...")
+                  RESTSCREEN(,,,,TELA2)
+                  LOOP
+               ENDIF
+               IF CONFIRMA(20,20,"Deseja imprimir a ficha de sa¡da ?")
+                  IMPSAIDA()
+               ENDIF
+            OTHERWISE
+               RESTSCREEN(,,,,TELA2)
+               LOOP
+         ENDCASE
+         RESTSCREEN(,,,,TELA2)
+      CASE OP=6
+         @ 1,1 CLEAR TO 21,78
+         @ 1,1 SAY PADC("Faturamento",78) COLOR CORTIT
+         @ 2,1 SAY "Nota Fiscal : "+STRZERO(TECNICA->NOTA_V,6,0)
+         @ 3,1 SAY "NFS : "+STRZERO(TECNICA->NFS_V,6,0)
+         tecfat->(dbsetorder(2), dbseek(tecnica->codigo_v))
+         coluna := 2
+         do while !tecfat->(eof()) .and. tecfat->codigo_v == tecnica->codigo_v .and. coluna <= 62
+            @ 4,coluna SAY DTOC(tecfat->dtparc_v)
+            @ 5,coluna SAY TRANSFORM(tecfat->vrparc_v,"@R 999,999.99")
+            tecfat->(dbskip())
+            coluna += 12
+         enddo
+         IF ! EMPTY(TECNICA->DATPAG_V)
+            @ 4,2 SAY TECNICA->DATPAG_V
+            @ 5,2 SAY TRANSFORM(TECNICA->VALPAR_V,"@R 999,999.99")
+         ENDIF
+         IF ! EMPTY(TECNICA->DATPAG1_V)
+            @ 4,14 SAY TECNICA->DATPAG1_V
+            @ 5,14 SAY TRANSFORM(TECNICA->VALPAR1_V,"@R 999,999.99")
+         ENDIF
+         IF ! EMPTY(TECNICA->DATPAG2_V)
+            @ 4,26 SAY TECNICA->DATPAG2_V
+            @ 5,26 SAY TRANSFORM(TECNICA->VALPAR2_V,"@R 999,999.99")
+         ENDIF
+         IF ! EMPTY(TECNICA->DATPAG3_V)
+            @ 4,38 SAY TECNICA->DATPAG3_V
+            @ 5,38 SAY TRANSFORM(TECNICA->VALPAR3_V,"@R 999,999.99")
+         ENDIF
+         IF ! EMPTY(TECNICA->DATPAG4_V)
+            @ 4,50 SAY TECNICA->DATPAG4_V
+            @ 5,50 SAY TRANSFORM(TECNICA->VALPAR4_V,"@R 999,999.99")
+         ENDIF
+         INKEY(0)
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+CONFIG->(DBCLOSEAREA())
+CLIFOR->(DBCLOSEAREA())
+TECNICA->(DBCLOSEAREA())
+TECNICA2->(DBCLOSEAREA())
+TECFAT->(DBCLOSEAREA())
+MECVEN->(DBCLOSEAREA())
+ESTOQUE->(DBCLOSEAREA())
+SERV->(DBCLOSEAREA())
+RESTSCREEN(,,,,TELA)
+CLOSEWIN(0,0,22,79)
+RETURN(.T.)
+
+FUNCTION IMPRECEPCAO()
+LOCAL OPCOES
+LOCAL nLineLength := 78, nTabSize := 3, lWrap := .T.
+LOCAL nLines, nCurrentLine
+CABECA("*** FICHA DE RECEPCAO "+TECNICA->CODIGO_V+" "+IF(EMPTY(TECNICA->GARANTIA_V).OR."N"$TECNICA->GARANTIA_V,"","GARANTIA")+" ***")
+@ PROW()+2,1 SAY "Nome      : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->NOME_V,SPACE(50))
+@ PROW()+1,1 SAY "Endereco  : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->ENDERECO_V,SPACE(50))
+@ PROW()+1,1 SAY "Telefone  : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),TRANSFORM(CLIFOR->FONE1_V,"@R (#999) ##99-9999"),SPACE(12))
+@ PROW()+1,1 SAY "CGC/CPF   : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CGCCPF_V  ,SPACE(LEN(CLIFOR->CGCCPF_V))+;
+             " Insc.Est./RG : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->RGINSEST_V,SPACE(LEN(CLIFOR->RGINSEST_V))))
+
+@ PROW()+1,1 SAY "Contato   : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CONTATO_V,SPACE(50))
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("DADOS DO SERVICO",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY "Servico para : "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)
+//@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml : "+TECNICA->TIPOKM_V+TRANSFORM(TECNICA->QTDKM_V,"@R 999999.9")
+@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml/N.Serie : "+TECNICA->NSERIE_V
+OPCOES:={"X   |  1/2  |   F",;
+         "E x |  1/2  |   F",;
+         "E   X  1/2  |   F",;
+         "E   | x1/2  |   F",;
+         "E   |   X   |   F",;
+         "E   |  1/2x |   F",;
+         "E   |  1/2  X   F",;
+         "E   |  1/2  | x F",;
+         "E   |  1/2  |   X" }
+@ PROW()+1,1 SAY "Ano          : "+TECNICA->ANO_V+"      COR : "+TECNICA->COR_V+" Tanque : "+OPCOES[IF(VAL(TECNICA->TANQUE_V)=0,1,VAL(TECNICA->TANQUE_V))]
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("AVARIAS / OBSERVASCOES",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+IF ! EMPTY(TECNICA->AVAR1_V)
+   @ PROW()+1,1 SAY TECNICA->AVAR1_V
+ENDIF
+IF ! EMPTY(TECNICA->AVAR2_V)
+   @ PROW()+1,1 SAY TECNICA->AVAR2_V
+ENDIF
+IF ! EMPTY(TECNICA->AVAR3_V)
+   @ PROW()+1,1 SAY TECNICA->AVAR3_V
+ENDIF
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("SERVICO SOLICITADO PELO CLIENTE",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+IF ! EMPTY(TECNICA->SOLICLI1_V)
+   @ PROW()+1,1 SAY TECNICA->SOLICLI1_V
+ENDIF
+IF ! EMPTY(TECNICA->SOLICLI2_V)
+   @ PROW()+1,1 SAY TECNICA->SOLICLI2_V
+ENDIF
+IF ! EMPTY(TECNICA->SOLICLI3_V)
+   @ PROW()+1,1 SAY TECNICA->SOLICLI3_V
+ENDIF
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("ORIENTACAO AO MECANICO / SERVICOS EXECUTADOS",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+IF ! EMPTY(TECNICA->ORIENT1_V)
+   @ PROW()+1,1 SAY TECNICA->ORIENT1_V
+ENDIF
+IF ! EMPTY(TECNICA->ORIENT2_V)
+   @ PROW()+1,1 SAY TECNICA->ORIENT2_V
+ENDIF
+IF ! EMPTY(TECNICA->ORIENT3_V)
+   @ PROW()+1,1 SAY TECNICA->ORIENT3_V
+ENDIF
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("DECLARACAO PARA EFEITOS LEGAIS",78)
+IF SERV->(DBSEEK(TECNICA->SERV_V))
+   nLines := MLCOUNT(SERV->TEXTO_V, nLineLength,;
+                     nTabSize, lWrap)
+   FOR nCurrentLine := 1 TO nLines
+      @ PROW()+1,2 SAY MEMOLINE(SERV->TEXTO_V, nLineLength, nCurrentLine,nTabSize, lWrap)
+   NEXT
+ENDIF
+//@ PROW()+1,2 SAY IF(SERV->(DBSEEK(TECNICA->SERV_V)),SERV->TEXTO_V,"")
+@ PROW()+3,1 SAY "                                           __________________________________"
+@ PROW()+1,1 SAY "                                                  Assinatura do Cliente"     
+EJECT
+
+// VIA CLIENTE
+
+CABECA("*** FICHA DE RECEPCAO "+TECNICA->CODIGO_V+" "+IF(EMPTY(TECNICA->GARANTIA_V).OR."N"$TECNICA->GARANTIA_V,"","GARANTIA")+" ***")
+@ PROW()+1,1 SAY "Nome      : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->NOME_V,SPACE(50))
+@ PROW()+1,1 SAY "Endereco  : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->ENDERECO_V,SPACE(50))
+@ PROW()+1,1 SAY "Telefone  : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),TRANSFORM(CLIFOR->FONE1_V,"@R (#999) ##99-9999"),SPACE(12))
+@ PROW()+1,1 SAY "CGC/CPF   : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CGCCPF_V,SPACE(LEN(CLIFOR->CGCCPF_V))+" Insc.Est./RG : "+;
+                                IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->RGINSEST_V,SPACE(LEN(CLIFOR->RGINSEST_V))))
+@ PROW()+1,1 SAY "Contato   : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CONTATO_V,SPACE(50))
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("DADOS DO SERVICO",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY "Servico para : "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)
+//@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml : "+TECNICA->TIPOKM_V+TRANSFORM(TECNICA->QTDKM_V,"@R 999999.9")
+@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml/N.Serie : "+TECNICA->NSERIE_V
+@ PROW()+1,1 SAY "Ano          : "+TECNICA->ANO_V+"            COR : "+TECNICA->COR_V+" Tanque : "+OPCOES[IF(VAL(TECNICA->TANQUE_V)=0,1,VAL(TECNICA->TANQUE_V))]
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("AVARIAS / OBSERVASCOES",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+IF ! EMPTY(TECNICA->AVAR1_V)
+   @ PROW()+1,1 SAY TECNICA->AVAR1_V
+ENDIF
+IF ! EMPTY(TECNICA->AVAR2_V)
+   @ PROW()+1,1 SAY TECNICA->AVAR2_V
+ENDIF
+IF ! EMPTY(TECNICA->AVAR3_V)
+   @ PROW()+1,1 SAY TECNICA->AVAR3_V
+ENDIF
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("INFORMACOES GERAIS",76)
+nLines := MLCOUNT(CONFIG->INFGER_V, nLineLength,;
+                  nTabSize, lWrap)
+FOR nCurrentLine := 1 TO nLines
+   @ PROW()+2,1 SAY MEMOLINE(CONFIG->INFGER_V, nLineLength, nCurrentLine,nTabSize, lWrap)
+NEXT
+// @ PROW()+2,1 SAY CONFIG->INFGER_V
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("AUTORIZACAO PARA RETIRADA DO VEICULO",76)
+@ PROW()+2,1 SAY "Autorizo o Sr(a)._________________________________________________________"
+@ PROW()+2,1 SAY "portador do RG numero____________________________ a comparecer e retirar o"
+@ PROW()+2,1 SAY "veiculo acima descriminado."
+@ PROW()+2,1 SAY ALLTRIM(DECRIP(CONFIG->CIDADE_V))+",        de                       de"
+@ PROW()+4,1 SAY "_______________________________        ___________________________________"
+@ PROW()+1,1 SAY "AUTORIZADO                             CLIENTE"
+EJECT
+SET PRINTER TO
+SET DEVICE TO SCREEN
+RETURN(.T.)
+
+
+FUNCTION IMPSAIDA()
+LOCAL TIPOK,QTDK
+LOCAL nLineLength := 78, nTabSize := 3, lWrap := .T.
+LOCAL nLines, nCurrentLine
+// VIA EMPRESA
+CABECA("*** FICHA DE SAIDA "+TECNICA->CODIGO_V+" "+IF(EMPTY(TECNICA->GARANTIA_V).OR."N"$TECNICA->GARANTIA_V,"","GARANTIA")+" ***")
+@ PROW()+2,1 SAY "Nome      : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->NOME_V,SPACE(50))
+@ PROW()+1,1 SAY "Endereco  : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->ENDERECO_V,SPACE(50))
+@ PROW()+1,1 SAY "Telefone  : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),TRANSFORM(CLIFOR->FONE1_V,"@R (#999) ##99-9999"),SPACE(12))
+@ PROW()+1,1 SAY "CGC/CPF   : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CGCCPF_V  ,SPACE(LEN(CLIFOR->CGCCPF_V))+;
+             " Insc.Est./RG : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->RGINSEST_V,SPACE(LEN(CLIFOR->RGINSEST_V))))
+
+@ PROW()+1,1 SAY "Contato   : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CONTATO_V,SPACE(50))
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("DADOS DO SERVICO",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY "Servico para : "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)
+//@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml : "+TECNICA->TIPOKM_V+TRANSFORM(TECNICA->QTDKM_V,"@R 999999.9")
+@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml/N.Serie : "+TECNICA->NSERIE_V
+@ PROW()+1,1 SAY "Ano          : "+TECNICA->ANO_V+"            COR : "+TECNICA->COR_V
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("SERVICO SOLICITADO PELO CLIENTE",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+IF ! EMPTY(TECNICA->SOLICLI1_V)
+   @ PROW()+1,1 SAY TECNICA->SOLICLI1_V
+ENDIF
+IF ! EMPTY(TECNICA->SOLICLI2_V)
+   @ PROW()+1,1 SAY TECNICA->SOLICLI2_V
+ENDIF
+IF ! EMPTY(TECNICA->SOLICLI3_V)
+   @ PROW()+1,1 SAY TECNICA->SOLICLI3_V
+ENDIF
+
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("ORIENTACAO AO MECANICO / SERVICOS EXECUTADOS",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+IF ! EMPTY(TECNICA->ORIENT1_V)
+   @ PROW()+1,1 SAY TECNICA->ORIENT1_V
+ENDIF
+IF ! EMPTY(TECNICA->ORIENT2_V)
+   @ PROW()+1,1 SAY TECNICA->ORIENT2_V
+ENDIF
+IF ! EMPTY(TECNICA->ORIENT3_V)
+   @ PROW()+1,1 SAY TECNICA->ORIENT3_V
+ENDIF
+@ PROW()+1,2 SAY REPLICATE("_",78)
+@ PROW()+1,2 SAY "Valor Itens    : "+TRANSFORM(TECNICA->VALITOT_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Mao de Obra    : "+TRANSFORM(TECNICA->VALMO_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Terceiros      : "+TRANSFORM(TECNICA->VALTERC_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Outros         : "+TRANSFORM(TECNICA->VALOUTRO_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Valor Total    : "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V+TECNICA->VALTERC_V+TECNICA->VALOUTRO_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY REPLICATE("_",78)
+@ PROW()+1,02 SAY "Entrada   em : " + DTOC(TECNICA->DATENT_V)
+@ PROW(),28 SAY "Or‡amento em : " + DTOC(TECNICA->DATORC_V)
+@ PROW(),53 SAY " Aprovado em : " + DTOC(TECNICA->DATAPR_V)
+@ PROW()+1,02 SAY "Saida Pe‡as  : " + DTOC(TECNICA->DATEXE_V)
+@ PROW(),28 SAY "Executado em : " + DTOC(TECNICA->DATEXE2_V)
+@ PROW(),53 SAY " Entregue em : " + DTOC(TECNICA->DATSAI_V)
+@ PROW()+2,2 SAY "GARANTIA VALIDA ATE : " +DTOC(TECNICA->DATGAR_V)+" ("+TRANSFORM((TECNICA->DATGAR_V-TECNICA->DATSAI_V)/30,"@R 999")+" meses)"
+@ PROW()+1,2 SAY REPLICATE("_",78)
+@ PROW()+4,2 SAY "Retirado por :__________________________  Assinatura :_______________________"
+@ PROW()+1,2 SAY REPLICATE("_",78)
+//nLines := MLCOUNT(CONFIG->RECOSAI_V, nLineLength,nTabSize, lWrap)
+//FOR nCurrentLine := 1 TO nLines
+//   @ PROW()+1,2 SAY MEMOLINE(CONFIG->RECOSAI_V, nLineLength, nCurrentLine,nTabSize, lWrap)
+//NEXT
+// @ PROW()+1,2 SAY CONFIG->RECOSAI_V
+EJECT
+
+// VIA CLIENTE
+CABECA("*** FICHA DE SAIDA "+TECNICA->CODIGO_V+" "+IF(EMPTY(TECNICA->GARANTIA_V).OR."N"$TECNICA->GARANTIA_V,"","GARANTIA")+" ***")
+@ PROW()+1,2 SAY "Cliente         : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->NOME_V,SPACE(50))
+@ PROW()+1,2 SAY "Endereco        : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->ENDERECO_V,SPACE(50))
+@ PROW()+1,2 SAY "Telefone        : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),TRANSFORM(CLIFOR->FONE1_V,"@R (#999) ##99-9999"),SPACE(12))
+@ PROW()+1,2 SAY "Contato         : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->CONTATO_V,SPACE(50))
+@ PROW()+1,2 SAY "Servico para    : "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY PADC("DADOS DO SERVICO",78)
+@ PROW()+1,1 SAY REPLICATE("_",78)
+@ PROW()+1,1 SAY "Servico para : "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)
+//@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml : "+TECNICA->TIPOKM_V+TRANSFORM(TECNICA->QTDKM_V,"@R 999999.9")
+@ PROW()+1,1 SAY "Placa/Patrim.: "+TECNICA->PLACA_V+" Km-Ml/N.Serie : "+TECNICA->NSERIE_V
+@ PROW()+1,1 SAY "Ano          : "+TECNICA->ANO_V+"            COR : "+TECNICA->COR_V
+@ PROW()+1,2 SAY REPLICATE("_",78)
+// @ PROW()+1,1 SAY " Codigo         Descricao           Vl.Unitario     Quantidade       Vl.Total "
+@ PROW()+1,1 SAY " Descricao                       Vl.Unitario     Quantidade       Vl.Total "
+@ PROW()+1,2 SAY REPLICATE("_",78)
+TECNICA2->(DBSEEK(TECNICA->CODIGO_V))
+DO WHILE TECNICA2->CODIGO_V==TECNICA->CODIGO_V .AND. ! EMPTY(TECNICA->DATEXE_V)
+//   @ PROW()+1,2 SAY TECNICA2->ITEM_V
+   @ PROW()+1,02  SAY IF(ESTOQUE->(DBSEEK(TECNICA2->ITEM_V)),LEFT(ESTOQUE->NOME_V,30),SPACE(30))
+   @ PROW(),33  SAY TECNICA2->VALUNI_V PICT "999,999,999.99"
+   @ PROW(),48  SAY TECNICA2->QTD_V    PICT "999,999,999.99"
+   @ PROW(),63  SAY TECNICA2->VALUNI_V*TECNICA2->QTD_V PICT "999,999,999.99"
+   TECNICA2->(DBSKIP())
+ENDDO
+@ PROW()+1,2 SAY REPLICATE("_",78)
+@ PROW()+1,2 SAY "Valor Itens    : "+TRANSFORM(TECNICA->VALITOT_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Mao de Obra    : "+TRANSFORM(TECNICA->VALMO_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Terceiros      : "+TRANSFORM(TECNICA->VALTERC_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Outros         : "+TRANSFORM(TECNICA->VALOUTRO_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY "Valor Total    : "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V+TECNICA->VALTERC_V+TECNICA->VALOUTRO_V,"@R 999,999,999.99")
+@ PROW()+1,2 SAY REPLICATE("_",78)
+nLines := MLCOUNT(CONFIG->RECOSAI_V, nLineLength,nTabSize, lWrap)
+FOR nCurrentLine := 1 TO nLines
+   @ PROW()+1,2 SAY MEMOLINE(CONFIG->RECOSAI_V, nLineLength, nCurrentLine,nTabSize, lWrap)
+NEXT
+// @ PROW()+1,2 SAY CONFIG->RECOSAI_V
+@ PROW()+1,2 SAY REPLICATE("_",78)
+@ PROW()+1,02 SAY "Entrada   em : " + DTOC(TECNICA->DATENT_V)
+@ PROW(),28 SAY "Or‡amento em : " + DTOC(TECNICA->DATORC_V)
+@ PROW(),53 SAY " Aprovado em : " + DTOC(TECNICA->DATAPR_V)
+@ PROW()+1,02 SAY "Saida Pe‡as  : " + DTOC(TECNICA->DATEXE_V)
+@ PROW(),28 SAY "Executado em : " + DTOC(TECNICA->DATEXE2_V)
+@ PROW(),53 SAY " Entregue em : " + DTOC(TECNICA->DATSAI_V)
+@ PROW()+2,2 SAY "GARANTIA VALIDA ATE : " +DTOC(TECNICA->DATGAR_V)+" ("+TRANSFORM((TECNICA->DATGAR_V-TECNICA->DATSAI_V)/30,"@R 999")+" meses)"
+TIPOK:=TECNICA->TIPOKM_V
+IF ! EMPTY(TECNICA->QTDKM_V)
+   IF TIPOK="M"
+      QTDK:=TECNICA->QTDKM_V+CONFIG->ML_V
+   ELSE
+      QTDK:=TECNICA->QTDKM_V+CONFIG->KM_V
+   ENDIF
+   @ PROW()+2,2 SAY "Revisao dos : "+TRANSFORM(QTDK,"@R 999999.9")
+   IF TIPOK="M"
+      QTDK:=QTDK+CONFIG->ML_V
+   ELSE
+      QTDK:=QTDK+CONFIG->KM_V
+   ENDIF
+   @ PROW(),50  SAY "Revisao dos : "+TRANSFORM(QTDK,"@R 999999.9")+TIPOK
+   @ PROW()+1,2 SAY "Data : ___/___/______"
+   @ PROW(),50  SAY "Data : ___/___/______"
+   @ PROW()+1,2 SAY TIPOK+IF(TIPOK="K","ms","ls")+"  :_______________"
+   @ PROW(),50  SAY TIPOK+IF(TIPOK="K","ms","ls")+"  :_______________"
+   @ PROW()+1,2 SAY "Visto :______________"
+   @ PROW(),50  SAY "Visto :______________"
+
+   IF TIPOK="M"
+      QTDK:=QTDK+CONFIG->ML_V
+   ELSE
+      QTDK:=QTDK+CONFIG->KM_V
+   ENDIF
+   @ PROW()+2,2 SAY "Revisao dos : "+TRANSFORM(QTDK,"@R 999999.9")
+   IF TIPOK="M"
+      QTDK:=QTDK+CONFIG->ML_V
+   ELSE
+      QTDK:=QTDK+CONFIG->KM_V
+   ENDIF
+   @ PROW(),50  SAY "Revisao dos : "+TRANSFORM(QTDK,"@R 999999.9")+TIPOK
+   @ PROW()+1,2 SAY "Data : ___/___/______"
+   @ PROW(),50  SAY "Data : ___/___/______"
+   @ PROW()+1,2 SAY TIPOK+IF(TIPOK="K","ms","ls")+"  :_______________"
+   @ PROW(),50  SAY TIPOK+IF(TIPOK="K","ms","ls")+"  :_______________"
+   @ PROW()+1,2 SAY "Visto :______________"
+   @ PROW(),50  SAY "Visto :______________"
+ENDIF
+@ PROW()+1,2 SAY REPLICATE("_",78)
+@ PROW()+1,2 SAY CHR(15)
+nLines := MLCOUNT(CONFIG->AVISAI_V, nLineLength,nTabSize, lWrap)
+nLineLength:=128
+FOR nCurrentLine := 1 TO nLines
+   @ PROW()+1,2 SAY MEMOLINE(CONFIG->AVISAI_V, nLineLength, nCurrentLine,nTabSize, lWrap)
+NEXT
+// @ PROW()+1,2 SAY CONFIG->AVISAI_V
+@ PROW()+1,2 SAY CHR(18)
+EJECT
+SET PRINTER TO
+SET DEVICE TO SCREEN
+RETURN(.T.)
+
+
+FUNCTION TECCALC()
+MEMVAR VALMO,VALTERC,VALOUTRO,VALITOT,GARANTIA
+@ 17,2  SAY "Valor Total : "+TRANSFORM(IF(EMPTY(GARANTIA).OR.ALLTRIM(UPPER(GARANTIA))="N".OR.ALLTRIM(UPPER(GARANTIA))="NAO",VALMO+VALOUTRO+VALTERC+VALITOT,0),"@R 999,999,999.99")
+RETURN(.T.)

@@ -1,0 +1,661 @@
+FUNCTION COTAVEN()
+LOCAL TELA,GETLIST:={},TELA1,COPIA,MAXIMO,Y,OP
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,NOMSEN
+MEMVAR CODIGO,MECVEN,CLIFOR,CFOP,DATEMI,ITEM,NOMI,VALUNI,QTD,CONT,PEDCLI
+MEMVAR MITEM,MNOME,MVALUNI,MQTD,VALITOT,MBASCAL,MICMS,REVENDA,CONTINUA
+MEMVAR NOME,ENDERECO,BAIRRO,ESTADO,CEP,CONTATO,FONE1,FONE2,FAX,CIDADE
+MEMVAR FRMPGTO,PRZENTR, NUMERO, COMPLEM
+TELA:=SAVESCREEN(0,0,24,80)
+WINDOW(0,0,24,79)
+DBF_CONFIG()
+DBF_CLIFOR()
+DBF_ESTOQUE()
+DBF_MOEDA()
+DBF_COTACAO()
+DBF_2COTACAO()
+DBF_PEDIDO()
+DBF_2PEDIDO()
+DBF_SYSTEM()
+DBF_PLANO()
+DBF_MECVEN()
+DO WHILE .T.
+   MITEM  :={,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,}
+   MNOME  :={,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,}
+   MVALUNI:={,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,}
+   MQTD   :={,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,}
+   MBASCAL:={,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,}
+   MICMS:={,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,}
+   DATEMI:=DATE()
+   CLIFOR   := SPACE(LEN(CLIFOR->CODIGO_V))
+   NOME     := SPACE(LEN(CLIFOR->NOME_V))
+   ENDERECO := SPACE(LEN(CLIFOR->ENDERECO_V))
+   NUMERO   := SPACE(LEN(CLIFOR->NUMERO_V))
+   COMPLEM := SPACE(LEN(CLIFOR->COMPLEM_V))
+   BAIRRO   := SPACE(LEN(CLIFOR->BAIRRO_V))
+   CIDADE   := SPACE(LEN(CLIFOR->CIDADE_V))
+   ESTADO   := SPACE(LEN(CLIFOR->ESTADO_V))
+   CEP      := SPACE(LEN(CLIFOR->CEP_V))
+   FONE1    := SPACE(LEN(CLIFOR->FONE1_V))
+   FONE2    := SPACE(LEN(CLIFOR->FONE2_V))
+   FAX      := SPACE(LEN(CLIFOR->FAX_V))
+   CONTATO  := SPACE(LEN(CLIFOR->CONTATO_V))
+   REVENDA  := 'N'
+   MECVEN   := SPACE(LEN(MECVEN->CODIGO_V))
+   FRMPGTO  := SPACE(LEN(COTACAO->FRMPGTO_V))
+   PRZENTR  := SPACE(LEN(COTACAO->PRZENTR_V))
+   SETCOLOR(CORTEX)
+   SCROLL(1,1,23,78)
+   @ 22,1 TO 22,78
+   @ 2,1  TO 2,78
+   @ 10,1  TO 10,78
+   SET KEY -1 TO
+   @ 1,2 SAY PADC("Cota‡ao de Vendas",76) COLOR CORTIT
+   @ 3,2 PROMPT "Nova Cotacao"
+   @ 3,16 PROMPT "Vizualizar Cota‡oes"
+   MENU TO OP
+   IF LASTKEY()=27
+      EXIT
+   ELSEIF OP=2
+      COTAVIS()
+      LOOP
+   ENDIF
+   SCROLL(03,1,03,78)
+   IF CONFIRMA(10,20,'Cliente novo ?')
+      @ 3,02 SAY "Nome     :" GET NOME PICT "@!" VALID .NOT. EMPTY(NOME)
+      @ 4,02 SAY "Endereco :" GET ENDERECO PICT "@s35!"
+      @ 4,49 SAY "N.:" GET NUMERO pict "@!"
+      @ 4,60 say "Compl.:" GET COMPLEM pict "@!"
+      @ 5,02 SAY "Bairro   :" GET BAIRRO PICT "@!"
+      @ 6,02 SAY "Cidade   :" GET CIDADE PICT "@!"
+      @ 6,45 SAY "Estado :" GET ESTADO PICT "@!" VALID .NOT. EMPTY(ESTADO)
+      @ 6,57 SAY "C.E.P.:" GET CEP PICT "@R 99999-999"
+      @ 7,02 SAY "Fone1    :" GET FONE1 PICT "@R (#999) ##99-9999"
+      @ 7,30 SAY "Fone2:" GET FONE2 PICT "@R (#999) ##99-9999"
+      @ 7,54 SAY "Fax:" GET FAX PICT "@R (#999) ##99-9999"
+      @ 8,02 SAY "Contato  :" GET CONTATO PICT "@!"
+      @ 8,64 SAY "Revenda :" GET REVENDA PICT "@!" VALID REVENDA$"SN"
+   ELSE
+      @ 3,02 SAY "Nome     :" GET CLIFOR PICT "@!" VALID(SEA_CLIFOR(CLIFOR,,,'C'))
+      READ
+      IF LASTKEY()=27
+         EXIT
+      ENDIF
+      NOME     := CLIFOR->NOME_V
+      ENDERECO := CLIFOR->ENDERECO_V
+      NUMERO   := clifor->numero_v
+      complem  := clifor->complem_v
+      BAIRRO   := CLIFOR->BAIRRO_V
+      CIDADE   := CLIFOR->CIDADE_V
+      ESTADO   := CLIFOR->ESTADO_V
+      CEP      := CLIFOR->CEP_V
+      FONE1    := CLIFOR->FONE1_V
+      FONE2    := CLIFOR->FONE2_V
+      FAX      := CLIFOR->FAX_V
+      CONTATO  := CLIFOR->CONTATO_V
+      REVENDA  := CLIFOR->REVENDA_V
+      @ 3,02 SAY "Nome     : " + NOME
+      @ 4,02 SAY "Endereco : " + ENDERECO
+      @ 4,49 SAY "N.: " + NUMERO
+      @ 4,60 say "Compl.: " + COMPLEM
+      @ 5,02 SAY "Bairro   : " + BAIRRO
+      @ 6,02 SAY "Cidade   : " + CIDADE
+      @ 6,45 SAY "Estado : " + ESTADO
+      @ 6,57 SAY "C.E.P.: " + TRANSFORM(CEP,"@R 99999-999")
+      @ 7,02 SAY "Fone1    : " + TRANSFORM(FONE1,"@R (#999) ##99-9999")
+      @ 7,30 SAY "Fone2: " + TRANSFORM(FONE2,"@R (#999) ##99-9999")
+      @ 7,54 SAY "Fax: " + TRANSFORM(FAX,"@R (#999) ##99-9999")
+      @ 8,02 SAY "Contato  : " + CONTATO
+      @ 8,64 SAY "Revenda : " + REVENDA
+   ENDIF
+   @ 09,02 SAY "Frm Pgto :" GET FRMPGTO PICT "@!S10"
+   @ 09,24 SAY "Prz Entrega :" GET PRZENTR PICT "@!S10"
+   @ 09,49 SAY "Vendedor :" GET MECVEN VALID(LASTKEY()=5.OR.SEA_MECVEN(MECVEN,9,67,"V"))
+   READ
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   IF .NOT. CONFIRMA(20,20,"Confirma Dados ?")
+      LOOP
+   ENDIF
+   SETCOLOR(CORTIT)
+   @ 10,1 SAY "    C¢digo         Descri‡ao        Vl.Unit rio     Quantidade       Vl.Total " 
+   @ 23,1 CLEAR TO 23,78
+   @ 23,37 SAY "Valor Total dos Produtos : "
+   SETCOLOR(CORTEX)
+   @ 12,1 CLEAR TO 19,78
+   SETCOLOR(CORDES)
+   @ 12,2  CLEAR TO 21,13
+   @ 12,15 CLEAR TO 21,32
+   @ 12,34 CLEAR TO 21,47
+   @ 12,49 CLEAR TO 21,62
+   @ 12,64 CLEAR TO 21,77
+   CONT:=1
+   VALITOT:=0
+   MAXIMO:=60
+   CONTINUA=.T.
+   DO WHILE CONTINUA=.T.
+      SETCOLOR(CORDES)
+      @ 12,2  CLEAR TO 12,13
+      @ 12,15 CLEAR TO 12,32
+      @ 12,34 CLEAR TO 12,47
+      @ 12,49 CLEAR TO 12,62
+      @ 12,64 CLEAR TO 12,77
+      ITEM:=SPACE(LEN(ESTOQUE->CODIGO_V))
+      NOMI:=SPACE(LEN(ESTOQUE->NOME_V))
+      VALUNI:=0
+      QTD:=0
+      SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+      ESTOQUE->(DBSETORDER(1))
+      @ 12,2  GET ITEM PICT "@!" VALID(ITEM=REPLICATE('9',LEN(ITEM)) .OR. ( SEA_ESTOQUE(ITEM).AND.COTA1() ))
+      @ 12,15 GET NOMI PICT "@!S18" WHEN ITEM=REPLICATE('9',LEN(ITEM))
+      @ 12,34 GET VALUNI PICT "999,999,999.99" WHEN NOITEM(ITEM) VALID(VALUNI>0.AND.COTA2())
+      @ 12,49 GET QTD    PICT "999,999,999.99" VALID(QTD>0.AND.COTA2())
+      READ
+      IF LASTKEY()=27
+         IF CONFIRMA(10,20,"Deseja cancelar a cota‡ao ?")
+            EXIT
+         ENDIF
+         LOOP
+      ENDIF
+      IF LASTKEY()=27
+         LOOP
+      ENDIF
+      IF CONTINUA=.F.
+         EXIT
+      ENDIF
+      IF LASTKEY()=27
+         LOOP
+      ENDIF
+      IF CONFIRMA(10,10,"Confirma Este Item ?")
+         SET KEY -1 TO FIMCOTAVEN()
+         MITEM[CONT]=ITEM
+         MNOME[CONT]=NOMI
+         MVALUNI[CONT]=VALUNI
+         MQTD[CONT]=QTD
+         VALITOT:=VALITOT+(VALUNI*QTD)
+         SETCOLOR(CORTIT)
+         @ 23,2 SAY "F2 - Finaliza"
+         @ 23,64 SAY VALITOT PICT "999,999,999.99"
+         SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+         TELA1:=SAVESCREEN(12,1,20,78)
+         RESTSCREEN(13,1,21,78,TELA1)
+         CONT++
+      ENDIF
+      IF CONT>=MAXIMO
+         AVISO("N£mero m ximo de itens ...")
+         FIMCOTAVEN()
+      ENDIF
+   ENDDO
+ENDDO
+SET KEY -1 TO
+SYSTEM->(DBCLOSEAREA())
+CONFIG->(DBCLOSEAREA())
+CLIFOR->(DBCLOSEAREA())
+ESTOQUE->(DBCLOSEAREA())
+MOEDA->(DBCLOSEAREA())
+COTACAO->(DBCLOSEAREA())
+COTACAO2->(DBCLOSEAREA())
+PEDIDO->(DBCLOSEAREA())
+PEDIDO2->(DBCLOSEAREA())
+PLANO->(DBCLOSEAREA())
+MECVEN->(DBCLOSEAREA())
+RESTSCREEN(0,0,24,80,TELA)
+RETURN(.T.)
+
+FUNCTION FIMCOTAVEN()
+LOCAL TELA1,GETLIST:={},COPIA,X,VALTOT
+MEMVAR CONTINUA
+MEMVAR CODIGO,MECVEN,CLIFOR,CFOP,DATEMI,ITEM,VALUNI,QTD,CONT
+MEMVAR MITEM,MVALUNI,MQTD,VALITOT,PEDCLI,REVENDA,MNOME
+MEMVAR NOME,ENDERECO,BAIRRO,ESTADO,CEP,CONTATO,FONE1,FONE2,FAX,CIDADE
+MEMVAR FRMPGTO,PRZENTR
+CLEAR GETS
+IF CONFIRMA(10,20,"Finaliza Cota‡ao ?")
+   IF CONFIG->(RECLOCK(5))
+      CONFIG->COTACAO_V:=CONFIG->COTACAO_V+1
+      CODIGO:=CONFIG->COTACAO_V
+      CONFIG->(DBCOMMIT(),DBUNLOCK())
+   ENDIF
+   DO WHILE .NOT. COTACAO->(ADDREC());ENDDO
+   COTACAO->CODIGO_V  := CODIGO
+   COTACAO->DATEMI_V  := DATE()
+   COTACAO->CLIFOR_V  := CLIFOR
+   COTACAO->NOME_V    := NOME
+   COTACAO->ENDERECO_V:= ENDERECO
+   COTACAO->NUMERO_V  := NUMERO
+   COTACAO->COMPLEM_V := COMPLEM
+   COTACAO->BAIRRO_V  := BAIRRO
+   COTACAO->CIDADE_V  := CIDADE
+   COTACAO->ESTADO_V  := ESTADO
+   COTACAO->CEP_V     := CEP
+   COTACAO->FONE1_V   := FONE1
+   COTACAO->FONE2_V   := FONE2
+   COTACAO->FAX_V     := FAX
+   COTACAO->CONTATO_V := CONTATO
+   COTACAO->REVENDA_V := REVENDA
+   COTACAO->MECVEN_V  := MECVEN
+   COTACAO->FRMPGTO_V := FRMPGTO
+   COTACAO->PRZENTR_V := PRZENTR
+   X := 1
+   VALTOT := 0
+   DO WHILE MITEM[X]<>NIL
+      DO WHILE .NOT. COTACAO2->(ADDREC());ENDDO
+      COTACAO2->CODIGO_V := CODIGO
+      COTACAO2->ITEM_V   := MITEM[X]
+      COTACAO2->NOME_V   := MNOME[X]
+      COTACAO2->QTD_V    := MQTD[X]
+      COTACAO2->VALUNI_V := MVALUNI[X]
+      COTACAO2->(DBCOMMIT(),DBUNLOCK())
+      VALTOT += MQTD[X]*MVALUNI[X]
+      X++
+   ENDDO
+   COTACAO->VALTOT_V := VALTOT
+   COTACAO->(DBCOMMIT(),DBUNLOCK())
+   IF CONFIRMA(10,20,"Deseja Imprimir a Cota‡ao ?")
+      TELA1:=SAVESCREEN(0,0,24,80)
+      WINDOW(10,10,12,47)
+      COPIA:=1
+      @ 11,12 SAY "Deseja Imprimir Quantas C¢pias" GET COPIA PICT "9" VALID(COPIA>0)
+      READ
+      IF LASTKEY()=27
+         RETURN(.T.)
+      ENDIF
+      RESTSCREEN(0,0,24,80,TELA1)
+      IMPCOT(COPIA)
+   ENDIF
+   CONTINUA=.F.
+ENDIF
+RETURN(.T.)
+
+FUNCTION COTA1()
+MEMVAR REVENDA,VALUNI,ITEM,CORDES
+@ 12,15 SAY IF(ESTOQUE->(DBSEEK(ITEM)),LEFT(ESTOQUE->NOME_V,18),SPACE(18)) COLOR(CORDES)
+IF REVENDA="S"
+   IF ESTOQUE->MOEDA_V="U"
+      VALUNI:=ESTOQUE->VALREV_V*MOEDA->VALOR_V
+   ELSE
+      VALUNI:=ESTOQUE->VALREV_V
+   ENDIF
+ELSE
+   IF ESTOQUE->MOEDA_V="U"
+      VALUNI:=ESTOQUE->VALVEN_V*MOEDA->VALOR_V
+   ELSE
+      VALUNI:=ESTOQUE->VALVEN_V
+   ENDIF
+ENDIF
+RETURN(.T.)
+
+FUNCTION COTA2()
+MEMVAR VALUNI,QTD,CORDES
+@ 12,64 SAY VALUNI*QTD PICT "999,999,999.99" COLOR CORDES
+RETURN(.T.)
+
+FUNCTION IMPCOT(COPIAS)
+LOCAL COPIA,X
+MEMVAR CODIGO,MECVEN,CLIFOR,CFOP,DATEMI,ITEM,VALUNI,QTD,CONT
+COPIA=1
+DO WHILE !ISPRINTER().AND.LASTKEY()#27
+   AVISO("Impressora fora de linha ou nao conectada ...")
+ENDDO
+IF LASTKEY()=27
+   RETURN(.F.)
+ENDIF
+LigaImpressora()
+DO WHILE COPIA<=COPIAS.AND.ISPRINTER()
+   @ PROW(),PCOL() SAY CHR(14)
+   @ PROW(),2 SAY PADC(DECRIP(ALLTRIM(CONFIG->NOME_V)),50)
+   @ PROW(),PCOL() SAY CHR(15)
+   @ PROW()+2,2 SAY alltrim(DECRIP(CONFIG->ENDERECO_V))+" "+alltrim(decrip(config->numero_v))+" "+alltrim(decrip(config->complem_v))
+   @ PROW()+1,2 SAY DECRIP(CONFIG->CIDADE_V)+" - "+DECRIP(CONFIG->ESTADO_V)
+   @ PROW()+1,2 SAY DECRIP(CONFIG->CGC_V)+" - "+DECRIP(CONFIG->INSEST_V)
+   @ PROW()+1,2 SAY IF(!EMPTY(CONFIG->FONE1_V),DECRIP(CONFIG->FONE1_V),SPACE(0))+" - "+IF(!EMPTY(CONFIG->FONE2_V),DECRIP(CONFIG->FONE2_V),SPACE(0))+" - "+IF(!EMPTY(CONFIG->FAX_V),DECRIP(CONFIG->FAX_V),SPACE(0))
+   @ PROW(),PCOL() SAY CHR(18)
+   @ PROW()+1,1 SAY REPLICATE("-",79)
+   @ PROW()+1,1 SAY PADC("Cotacao de Vendas"+IF(COTACAO->REVENDA_V="S"," (REVENDA)","")+'-'+DTOC(DATE()),78)
+   @ PROW()+1,1 SAY REPLICATE("-",79)
+   @ PROW()+1,0 SAY COTACAO->CLIFOR_V+' '+COTACAO->NOME_V
+   @ PROW()+1,0 SAY COTACAO->ENDERECO_V
+   @ PROW(),50  SAY COTACAO->BAIRRO_V
+   @ PROW()+1,0 SAY COTACAO->CEP_V
+   @ PROW(),10  SAY COTACAO->CIDADE_V
+   @ PROW(),42  SAY COTACAO->ESTADO_V
+   @ PROW()+1,0 SAY COTACAO->FONE1_V
+   @ PROW(),17  SAY COTACAO->FONE2_V
+   @ PROW(),37  SAY COTACAO->FAX_V
+   @ PROW()+1,0 SAY COTACAO->CONTATO_V
+   @ PROW()+1,1 SAY REPLICATE("-",79)
+   IF CONFIG->MODPED_V=3
+      IF CONFIG->IMPCVEN_V="N"
+         @ PROW()+1,0 SAY "It Quantidade Un Descricao        Vl.Unit.  V.Total Localizacao"
+      ELSE
+         @ PROW()+1,0 SAY "It Cod.       Quantidade Un Descricao          Vl.Unit.  V.Total Localizacao"
+      ENDIF
+   ELSEIF CONFIG->MODPED_V=2
+      IF CONFIG->IMPCVEN_V="N"
+         @ PROW()+1,0 SAY "It Quantidade Un Descricao           Vl.Unit.  V.Total Localizacao"
+      ELSE
+         @ PROW()+1,0 SAY "It Cod.    Quantidade Un Descricao             Vl.Unit.  V.Total Localizacao"
+      ENDIF
+   ELSE
+      IF CONFIG->IMPCVEN_V="N"
+         @ PROW()+1,0 SAY "Descricao                        Vl.Unitario        Qtd    V.Total Localizacao"
+      ELSE
+         @ PROW()+1,0 SAY "Codigo       Descricao                        Vl.Unitario        Qtd    V.Total Localizacao"
+      ENDIF
+   ENDIF
+   @ PROW()+1,1 SAY REPLICATE("-",79)
+   X=1
+   COTACAO2->(DBSETORDER(1),DBSEEK(COTACAO->CODIGO_V))
+   DO WHILE COTACAO2->CODIGO_V==COTACAO->CODIGO_V .AND. .NOT. COTACAO2->(EOF())
+      IF CONFIG->MODPED_V=3
+         @ PROW()+1,00 SAY X PICT "@R 99"
+         @ PROW()  ,03 SAY IF(CONFIG->IMPCVEN_V="N",'',COTACAO2->ITEM_V)
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",3,16)  SAY COTACAO2->QTD_V    PICT "@R 9,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",12,25) SAY IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),ESTOQUE->UNIDADE_V,SPACE(2))
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",15,28) SAY LEFT(IF(COTACAO2->ITEM_V=REPLICATE('9',LEN(COTACAO2->ITEM_V)),COTACAO2->NOME_V,IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),IF(CONFIG->DESCAPL_V='N',ESTOQUE->NOME_V,TRIM(ESTOQUE->NOME_V)+" "+TRIM(ESTOQUE->APLICA_V)+" "+TRIM(ESTOQUE->FABRICAN_V)),SPACE(14))),14)
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",36,49) SAY COTACAO2->VALUNI_V PICT "@R 999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",43,56) SAY COTACAO2->VALUNI_V*COTACAO2->QTD_V PICT "@R 9,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",52,64) SAY IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),LEFT(ESTOQUE->LOCALIZA_V,15),SPACE(15))
+      ELSEIF CONFIG->MODPED_V=2
+         @ PROW()+1,00 SAY X PICT "@R 99"
+         @ PROW()  ,03 SAY IF(CONFIG->IMPCVEN_V="N",'',LEFT(COTACAO2->ITEM_V,9))
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",3,13)  SAY COTACAO2->QTD_V    PICT "@R 9,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",12,22) SAY IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),ESTOQUE->UNIDADE_V,SPACE(2))
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",18,25) SAY LEFT(IF(COTACAO2->ITEM_V=REPLICATE('9',LEN(COTACAO2->ITEM_V)),COTACAO2->NOME_V,IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),IF(CONFIG->DESCAPL_V='N',ESTOQUE->NOME_V,TRIM(ESTOQUE->NOME_V)+" "+TRIM(ESTOQUE->APLICA_V)+" "+TRIM(ESTOQUE->FABRICAN_V)),SPACE(22))),22)
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",39,46) SAY COTACAO2->VALUNI_V PICT "@R 999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",46,53) SAY COTACAO2->VALUNI_V*COTACAO2->QTD_V PICT "@R 9,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",55,62) SAY IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),LEFT(ESTOQUE->LOCALIZA_V,15),SPACE(15))
+      ELSE
+         @ PROW()+1,00 SAY IF(CONFIG->IMPCVEN_V="N",'',COTACAO2->ITEM_V)
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",00,13) SAY LEFT(IF(COTACAO2->ITEM_V=REPLICATE('9',LEN(COTACAO2->ITEM_V)),COTACAO2->NOME_V,IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),IF(CONFIG->DESCAPL_V='N',ESTOQUE->NOME_V,TRIM(ESTOQUE->NOME_V)+" "+TRIM(ESTOQUE->APLICA_V)+" "+TRIM(ESTOQUE->FABRICAN_V)),SPACE(20))),20)
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",21,34) SAY COTACAO2->VALUNI_V PICT "@R 9,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",30,43) SAY COTACAO2->QTD_V    PICT "@R 999,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",41,54) SAY COTACAO2->VALUNI_V*COTACAO2->QTD_V PICT "@R 999,999.99"
+         @ PROW()  ,IF(CONFIG->IMPCVEN_V="N",55,63) SAY IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),LEFT(ESTOQUE->LOCALIZA_V,15),SPACE(15))
+      ENDIF
+      COTACAO2->(DBSKIP())
+      X++
+   ENDDO
+   @ PROW()+1,1 SAY REPLICATE("-",79)
+   @ PROW()+1,1 SAY "Valor Total dos Produtos : " +TRANSFORM(COTACAO->VALTOT_V,"@R 999,999,999.99")
+   @ PROW()+1,1 SAY REPLICATE("-",79)
+   @ PROW()+1,02 SAY "Frm Pgto : " + LEFT(COTACAO->FRMPGTO_V,10)
+   @ PROW(),24 SAY "Prz Entrega : " + LEFT(COTACAO->PRZENTR_V,10)
+   @ PROW(),49 SAY "Vendedor : " + COTACAO->MECVEN_V + IF(MECVEN->(DBSETORDER(1),DBSEEK(COTACAO->MECVEN_V)),LEFT(MECVEN->NOME_V,13),SPACE(13))
+   @ PROW()+1,1 SAY REPLICATE("=",79)
+   EJECT
+   COPIA++
+ENDDO
+SET PRINTER TO
+SET DEVICE TO SCREEN
+RETURN(.T.)
+
+FUNCTION COTAVIS()
+LOCAL TELA,GETLIST:={}
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,NOMSEN
+MEMVAR VARIAVEIS,TITULOS,MASCARAS
+MEMVAR CODIGO
+TELA:=SAVESCREEN()
+DO WHILE .T.
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   SCROLL(1,1,23,78)
+   CODIGO := 0
+   @ 1,02 SAY "C¢digo   :" GET CODIGO PICT "@R 99999" VALID(SEA_COTACAO(CODIGO))
+   READ
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   @ 2,02 SAY "Nome     : " + COTACAO->NOME_V
+   @ 3,02 SAY "Endereco : " + COTACAO->ENDERECO_V
+   @ 3,49 SAY "N.: " + COTACAO->NUMERO_V
+   @ 3,60 say "Compl.: " + COTACAO->COMPLEM_V
+   @ 4,02 SAY "Bairro   : " + COTACAO->BAIRRO_V
+   @ 5,02 SAY "Cidade   : " + COTACAO->CIDADE_V
+   @ 5,45 SAY "Estado : " + COTACAO->ESTADO_V
+   @ 5,57 SAY "C.E.P.: " + COTACAO->CEP_V PICT "@R 99999-999"
+   @ 6,02 SAY "Fone1    : " + COTACAO->FONE1_V PICT "@R (#999) ##99-9999"
+   @ 6,30 SAY "Fone2: " + COTACAO->FONE2_V PICT "@R (#999) ##99-9999"
+   @ 6,54 SAY "Fax: " + COTACAO->FAX_V PICT "@R (#999) ##99-9999"
+   @ 7,02 SAY "Contato  : " + COTACAO->CONTATO_V
+   VARIAVEIS:={"IF(COTACAO2->CODIGO_V==COTACAO->CODIGO_V,COTACAO2->ITEM_V,SPACE(6))",;
+               "IF(COTACAO2->ITEM_V=REPLICATE('9',LEN(COTACAO2->ITEM_V)),COTACAO2->NOME_V,IF(COTACAO2->CODIGO_V==COTACAO->CODIGO_V,IF(ESTOQUE->(DBSEEK(COTACAO2->ITEM_V)),LEFT(ESTOQUE->NOME_V,20),SPACE(20)),SPACE(20)))",;
+               "IF(COTACAO2->CODIGO_V==COTACAO->CODIGO_V,COTACAO2->VALUNI_V,SPACE(8))","IF(COTACAO2->CODIGO_V==COTACAO->CODIGO_V,COTACAO2->QTD_V,SPACE(8))",;
+               "IF(COTACAO2->CODIGO_V==COTACAO->CODIGO_V,COTACAO2->VALUNI_V*COTACAO2->QTD_V,SPACE(9))"}
+   MASCARAS :={,,"@R 999,999.99","@R 999,999.99","@R 9,999,999.99"}
+   TITULOS  :={"C¢digo","Descri‡ao","Vl.Unit.","Qtd","Vl.Total"}
+   SETCOLOR(CORDES+","+CORBAR+",,,"+CORDES)
+   @ 24,1 SAY PADR("INS:Inclui Item DEL:Exclui item F2:Gera pedido F7:Imprime",78) COLOR CORTIT
+   COTACAO2->(DBSETORDER(1),DBSEEK(COTACAO->CODIGO_V))
+   COTACAO2->(DBEDIT(8,1,23,78,VARIAVEIS,"DBECOTAVEN",MASCARAS,TITULOS,CHR(220),CHR(219)))
+   EXIT
+ENDDO
+RESTSCREEN(,,,,TELA)
+RETURN(.T.)
+
+FUNCTION DBECOTAVEN(NMODE,NCOL)
+LOCAL NKEY,NRETVAL,TELA,OLD,GETLIST:={},PROCURA,TELA1
+LOCAL QTDANT,VALANT,QTDNEW,VALNEW,PEDIDO,PAGREC,CLIFOR,COPIA
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,NOMSEN
+MEMVAR ITEM,T_VALUNI,T_QTD
+OLD:=SETCOLOR()
+TELA:=SAVESCREEN(0,0,24,80)
+NRETVAL:=1
+NKEY:=LASTKEY()
+DO CASE
+   CASE NMODE==0
+      NRETVAL:=1
+   CASE NMODE==1
+      NRETVAL:=1
+   CASE NMODE==2
+      NRETVAL:=1
+   CASE NMODE==3
+      NRETVAL:=1
+   CASE NMODE==4
+      DO CASE
+         CASE NKEY=27
+            NRETVAL:=0
+         CASE NKEY=22
+            TELA:=SAVESCREEN()
+            WINDOW(4,0,6,79)
+            SETCOLOR(CORDES)
+            @ 05,16 CLEAR TO 05,35
+            SETCOLOR(CORTEX)
+            SETCURSOR(1)
+            ITEM := SPACE(12)
+            T_VALUNI:=0
+            T_QTD   :=0
+            @ 05,02 GET ITEM PICT "@K!" VALID(SEA_ESTOQUE(ITEM).AND.COTAVEN1())
+            @ 05,61 CLEAR TO 05,72
+            @ 05,38 GET T_VALUNI PICT "@R 999,999.99" VALID(LASTKEY()=5 .OR. T_VALUNI>0 .AND. PRECOVALID(T_VALUNI) .AND. COTAVEN2())
+            @ 05,50 GET T_QTD    PICT "@R 999,999.99" VALID(LASTKEY()=5 .OR. T_QTD>0 .AND. COTAVEN2())
+            READ
+            IF LASTKEY()#27
+               DO WHILE .NOT. COTACAO2->(ADDREC(5));ENDDO
+               COTACAO2->CODIGO_V := COTACAO->CODIGO_V
+               COTACAO2->ITEM_V   := ITEM
+               COTACAO2->VALUNI_V := T_VALUNI
+               COTACAO2->QTD_V    := T_QTD
+               COTACAO2->(DBCOMMIT(),DBUNLOCK())
+               DO WHILE .NOT. COTACAO->(RECLOCK(5));ENDDO
+               COTACAO->VALTOT_V += (T_QTD*T_VALUNI)
+               COTACAO->(DBCOMMIT(),DBUNLOCK())
+            ENDIF
+            NRETVAL:=1
+         CASE NKEY=7
+            IF CONFIRMA(20,20,"Tem certeza que deseja excluir este item ?")
+               DO WHILE .NOT. COTACAO->(RECLOCK(5));ENDDO
+               COTACAO->VALTOT_V -= COTACAO2->VALUNI_V*COTACAO2->QTD_V
+               COTACAO->(DBCOMMIT(),DBUNLOCK())
+               DO WHILE .NOT. COTACAO2->(RECLOCK(5));ENDDO
+               COTACAO2->(DBDELETE(),DBUNLOCK())
+            ENDIF
+            NRETVAL:=2
+         CASE NKEY=13 .AND. NCOL=4
+            QTDANT := COTACAO2->QTD_V
+            VALANT := COTACAO2->VALUNI_V
+            QTDNEW := QTDANT
+            VALNEW := VALANT
+            @ ROW(),COL() GET QTDNEW PICT "999,999.99" VALID QTDNEW>0
+            READ
+            IF LASTKEY()#27
+               IF CONFIRMA(20,10,"Confirma altera‡ao ?")
+                  DO WHILE .NOT. COTACAO->(RECLOCK(5));ENDDO
+                  COTACAO->VALTOT_V -= QTDANT*VALANT
+                  COTACAO->VALTOT_V += QTDNEW*VALNEW
+                  COTACAO->(DBCOMMIT(),DBUNLOCK())
+                  DO WHILE .NOT. COTACAO2->(RECLOCK(5));ENDDO
+                  COTACAO2->QTD_V := QTDNEW
+                  COTACAO2->(DBCOMMIT(),DBUNLOCK())
+               ENDIF
+            ENDIF
+         CASE NKEY=13 .AND. NCOL=3
+            QTDANT := COTACAO2->QTD_V
+            VALANT := COTACAO2->VALUNI_V
+            QTDNEW := QTDANT
+            VALNEW := VALANT
+            @ ROW(),COL() GET VALNEW PICT "999,999.99" VALID PRECOVALID(VALNEW)
+            READ
+            IF LASTKEY()#27
+               IF CONFIRMA(20,10,"Confirma altera‡ao ?")
+                  DO WHILE .NOT. COTACAO->(RECLOCK(5));ENDDO
+                  COTACAO->VALTOT_V -= QTDANT*VALANT
+                  COTACAO->VALTOT_V += QTDNEW*VALNEW
+                  COTACAO->(DBCOMMIT(),DBUNLOCK())
+                  DO WHILE .NOT. COTACAO2->(RECLOCK(5));ENDDO
+                  COTACAO2->VALUNI_V := VALNEW
+                  COTACAO2->(DBCOMMIT(),DBUNLOCK())
+               ENDIF
+            ENDIF
+         CASE NKEY=-1
+            COTACAO2->(DBSETORDER(1),DBSEEK(COTACAO->CODIGO_V))
+            DO WHILE COTACAO2->CODIGO_V==COTACAO->CODIGO_V
+               IF COTACAO2->ITEM_V=REPLICATE('9',LEN(COTACAO2->ITEM_V))
+                  AVISO("Essa cotacao possui itens nao cadastrados no estoque, imposs¡vel gerar pedido.")
+                  RETURN 2
+               ENDIF
+               COTACAO2->(DBSKIP())
+            ENDDO
+            IF CONFIRMA(20,20,"Deseja realmente gerar o pedido ?")
+               CLIFOR := COTACAO->CLIFOR_V
+               IF EMPTY(CLIFOR)
+                  DO WHILE .NOT. CONFIG->(RECLOCK(5));ENDDO
+                  CONFIG->CLIFOR_V:=CONFIG->CLIFOR_V+1
+                  CLIFOR:="C"+STRZERO(CONFIG->CLIFOR_V,5,0)
+                  CONFIG->(DBCOMMIT(),DBUNLOCK())
+                  DO WHILE .NOT. CLIFOR->(ADDREC(5));ENDDO
+                  CLIFOR->CODIGO_V  :=CLIFOR
+                  CLIFOR->REVENDA_V :="N"
+                  CLIFOR->NOME_V    :=COTACAO->NOME_V
+                  CLIFOR->FANTASIA_V:=COTACAO->NOME_V
+                  CLIFOR->REVENDA_V :=COTACAO->REVENDA_V
+                  CLIFOR->ENDERECO_V:=COTACAO->ENDERECO_V
+                  clifor->numero_v  :=cotacao->numero_v
+                  clifor->complem_v :=cotacao->complem_v
+                  CLIFOR->BAIRRO_V  :=COTACAO->BAIRRO_V
+                  CLIFOR->CIDADE_V  :=COTACAO->CIDADE_V
+                  CLIFOR->ESTADO_V  :=COTACAO->ESTADO_V
+                  CLIFOR->CEP_V     :=COTACAO->CEP_V
+                  CLIFOR->FONE1_V   :=COTACAO->FONE1_V
+                  CLIFOR->FONE2_V   :=COTACAO->FONE2_V
+                  CLIFOR->FAX_V     :=COTACAO->FAX_V
+                  CLIFOR->CONTATO_V :=COTACAO->CONTATO_V
+                  CLIFOR->ENDCOB_V  :=COTACAO->ENDERECO_V
+                  CLIFOR->BAICOB_V  :=COTACAO->BAIRRO_V
+                  CLIFOR->CIDCOB_V  :=COTACAO->CIDADE_V
+                  CLIFOR->ESTCOB_V  :=COTACAO->ESTADO_V
+                  CLIFOR->CEPCOB_V  :=COTACAO->CEP_V
+                  CLIFOR->FONECOB1_V:=COTACAO->FONE1_V
+                  CLIFOR->FONECOB2_V:=COTACAO->FONE2_V
+                  CLIFOR->FAXCOB_V  :=COTACAO->FAX_V
+                  CLIFOR->ENDENT_V  :=COTACAO->ENDERECO_V
+                  CLIFOR->BAIENT_V  :=COTACAO->BAIRRO_V
+                  CLIFOR->CIDENT_V  :=COTACAO->CIDADE_V
+                  CLIFOR->ESTENT_V  :=COTACAO->ESTADO_V
+                  CLIFOR->CEPENT_V  :=COTACAO->CEP_V
+                  CLIFOR->FONEENT1_V:=COTACAO->FONE1_V
+                  CLIFOR->FONEENT2_V:=COTACAO->FONE2_V
+                  CLIFOR->FAXENT_V  :=COTACAO->FAX_V
+                  CLIFOR->NOMSEN_V  :=NOMSEN
+                  CLIFOR->DATCAD_V  :=DATE()
+                  CLIFOR->CODVEN_V  :=''
+                  CLIFOR->(DBCOMMIT(),DBUNLOCK())
+               ENDIF
+               DO WHILE .NOT. CONFIG->(RECLOCK(5));ENDDO
+               CONFIG->PEDVEN_V:=CONFIG->PEDVEN_V+1
+               PEDIDO:="V"+STRZERO(CONFIG->PEDVEN_V,5,0)
+               DO WHILE .NOT. PEDIDO->(ADDREC(5));ENDDO
+               PEDIDO->CODIGO_V := PEDIDO
+               PEDIDO->CLIFOR_V := CLIFOR
+               PEDIDO->DATEMI_V := DATE()
+               PEDIDO->DATBAI_V := DATE()
+               PEDIDO->VALTOT_V := COTACAO->VALTOT_V
+               PEDIDO->TIPO_V   := "P"
+               PEDIDO->MECVEN_V := COTACAO->MECVEN_V
+               PEDIDO->NOMSEN_V := NOMSEN
+               COTACAO2->(DBSETORDER(1),DBSEEK(COTACAO->CODIGO_V))
+               DO WHILE COTACAO2->CODIGO_V==COTACAO->CODIGO_V .AND. .NOT. COTACAO2->(EOF())
+                  DO WHILE .NOT. PEDIDO2->(ADDREC());ENDDO
+                  PEDIDO2->CODIGO_V :=PEDIDO
+                  PEDIDO2->ITEM_V   :=COTACAO2->ITEM_V
+                  PEDIDO2->VALUNI_V :=COTACAO2->VALUNI_V
+                  PEDIDO2->QTD_V    :=COTACAO2->QTD_V
+                  PEDIDO2->ICMS_V   :=CONFIG->DEFICMS_V
+                  IF ESTOQUE->(DBSEEK(COTACAO2->ITEM_V))
+                     DO WHILE .NOT. ESTOQUE->(RECLOCK(5));ENDDO
+                     ESTOQUE->RESERVA_V:=ESTOQUE->RESERVA_V+COTACAO2->QTD_V
+                     ESTOQUE->(DBCOMMIT(),DBUNLOCK())
+                  ENDIF
+                  PEDIDO2->(DBCOMMIT(),DBUNLOCK())
+                  COTACAO2->(DBSKIP())
+               ENDDO
+               IF SYSTEM->(ADDREC()) .AND. CONFIG->(RECLOCK())
+                  CONFIG->SYSTEM_V+=1
+                  SYSTEM->CODIGO_V :=CONFIG->SYSTEM_V
+                  SYSTEM->DATA_V   :=DATE()
+                  SYSTEM->HORA_V   :=TIME()
+                  SYSTEM->DESCR_V  :="Venda por Pedido "+PEDIDO
+                  SYSTEM->USUARIO_V:=NOMSEN
+                  PEDIDO->SYSTEM_V :=SYSTEM->CODIGO_V
+               ENDIF
+               SYSTEM->(DBCOMMIT(),DBUNLOCK())
+               PEDIDO->(DBCOMMIT(),DBUNLOCK())
+               COTACAO2->(DBSETORDER(1),DBSEEK(COTACAO->CODIGO_V))
+               DO WHILE .NOT. COTACAO2->CODIGO_V==COTACAO->CODIGO_V .AND. .NOT. COTACAO2->(EOF())
+                  DO WHILE .NOT. COTACAO2->(RECLOCK(5));ENDDO
+                  COTACAO2->(DBDELETE(),DBUNLOCK())
+                  COTACAO2->(DBSKIP())
+               ENDDO
+               DO WHILE .NOT. COTACAO->(RECLOCK(5));ENDDO
+               COTACAO->(DBDELETE(),DBUNLOCK())
+            ENDIF
+            NRETVAL:=0
+         CASE NKEY=-6
+            IF CONFIRMA(10,20,"Deseja Imprimir a Cota‡ao ?")
+               TELA1:=SAVESCREEN(0,0,24,80)
+               WINDOW(10,10,12,47)
+               COPIA:=1
+               @ 11,12 SAY "Deseja Imprimir Quantas C¢pias" GET COPIA PICT "9" VALID(COPIA>0)
+               READ
+               IF LASTKEY()=27
+                  RETURN(.T.)
+               ENDIF
+               RESTSCREEN(0,0,24,80,TELA1)
+               IMPCOT(COPIA)
+            ENDIF
+         OTHERWISE
+            NRETVAL:=1
+      ENDCASE
+ENDCASE
+SETCOLOR(OLD)
+RESTSCREEN(0,0,24,80,TELA)
+COTACAO->(DBSETORDER(1))
+RETURN NRETVAL
+
+FUNCTION NOITEM(ITEM)
+MEMVAR NOMI
+IF .NOT. ITEM=REPLICATE('9',LEN(ITEM))
+   COTA1()
+ELSE
+   @ 12,15 SAY LEFT(NOMI,18)
+ENDIF
+RETURN(.T.)

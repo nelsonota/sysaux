@@ -1,0 +1,25 @@
+FUNCTION MENUCOTA()
+LOCAL OPCOES,OP,TELA
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+TELA:=SAVESCREEN(0,0,24,80)
+WINDOW(11,23,14,58)
+DO WHILE .T.
+   OPCOES:={"  Pesquisa de Itens para Cota‡ao  ",;
+            "  Registros Itens & Fornecedores  " }
+   OP:=ACHOICE(12,24,13,57,OPCOES,.T.,"ACHOFUN")
+   DO CASE
+      CASE OP=1
+         IF ACCCOM("21141")
+            LISTACOTA()
+         ENDIF
+      CASE OP=2
+         IF ACCCOM("21142")
+            COTACAO()
+         ENDIF
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+RESTSCREEN(,,,,TELA)
+CLOSEWIN(11,23,14,58)
+RETURN(.T.)

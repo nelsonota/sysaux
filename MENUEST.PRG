@@ -1,0 +1,25 @@
+FUNCTION MENUEST()
+LOCAL OP,OPCOES,TELA
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+TELA:=SAVESCREEN(0,0,24,80)
+WINDOW(5,17,8,40)
+DO WHILE .T.
+   OPCOES:={" "+CHR(16)+"Entradas de Estoque ",;
+            " "+CHR(16)+"Sa¡das de Estoque   " }
+   OP:=ACHOICE(6,18,7,39,OPCOES,.T.,"ACHOFUN")
+   DO CASE
+      CASE OP=1
+         IF ACCCOM("211")
+            MENUCOM()
+         ENDIF
+      CASE OP=2
+         IF ACCCOM("212")
+            MENUVEN()
+         ENDIF
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+RESTSCREEN(0,0,24,80,TELA)
+CLOSEWIN(5,17,8,36)
+RETURN(.T.)

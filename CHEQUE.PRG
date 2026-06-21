@@ -1,0 +1,25 @@
+FUNCTION CHEQUE()
+LOCAL  OPCOES,OP,TELA
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,NETKEY,LEVEL,CODSEN,TRABALHO
+TELA:=SAVESCREEN(0,0,24,80)
+WINDOW(10,5,13,32)
+DO WHILE .T.
+   OPCOES:={"  Registro de Talao       ",;
+            "  Cancelamento de Cheques " }
+   OP:=ACHOICE(11,6,12,31,OPCOES,.T.,"ACHOFUN")
+   DO CASE
+      CASE OP=1
+         IF ACCCOM("161")
+            EMITAL()
+         ENDIF
+      CASE OP=2
+         IF ACCCOM("162")
+            CANCELA()
+         ENDIF
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+RESTSCREEN(0,0,24,80,TELA)
+CLOSEWIN(10,5,13,32)
+RETURN(.T.)

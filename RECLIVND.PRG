@@ -1,0 +1,62 @@
+FUNCTION RECLIVND()
+LOCAL TELA,TIPO,DATINI,ARQ,CAMPOS,GETLIST:={},TITULO
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,IMPFUN
+MEMVAR MECVEN
+DBF_MECVEN()
+DBF_CLIFOR()
+DBF_CONFIG()
+TELA := SAVESCREEN()
+WINDOW(10,10,14,50)
+DO WHILE .T.
+   DATINI := DATE()
+   TIPO   := 'G'
+   MECVEN := SPACE(LEN(MECVEN->CODIGO_V))
+   @ 11,12 SAY "(G)eral / por (V)endedor  :" GET TIPO PICT "@!" VALID TIPO$'GV'
+   @ 12,12 SAY "C¢digo do Vendedor        :" GET MECVEN VALID(SEA_MECVEN(MECVEN,,,'V')) WHEN TIPO='V'
+   @ 13,12 SAY "Clientes sem compra desde :" GET DATINI VALID .NOT. EMPTY(DATINI)
+   READ
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   IF CONFIRMA(20,20,"Gerar Relat¢rio ?")
+      CAMPOS:={}
+      AADD(CAMPOS,{"TIPO_V","C",1 ,0 })
+      AADD(CAMPOS,{"P1_V"  ,"C",78,0 })
+      AADD(CAMPOS,{"P2_V"  ,"C",55,0 })
+      ARQ := NOMETEMP()
+      DBCREATE(ARQ,CAMPOS)
+      IF ! FILE(ARQ+".DBF")
+         AVISO("O Sistema nao conseguiu criar o arquivo temporario")
+         LOOP
+      ENDIF
+      DBF_TMP(ARQ,'IMP')
+      CLIFOR->(DBSETORDER(4),DBSEEK(DATINI))
+      DO WHILE .NOT. CLIFOR->(EOF()) .AND. CLIFOR->DATPED_V<=DATINI
+         IF TIPO = 'V' .AND. CLIFOR->CODVEN_V <> MECVEN
+            CLIFOR->(DBSKIP())
+            LOOP
+         ENDIF
+         DO WHILE .NOT. IMP->(ADDREC());ENDDO
+         IMP->TIPO_V := 'N'
+         IMP->P1_V   := CLIFOR->CODIGO_V+' '+CLIFOR->NOME_V+' '+DTOC(CLIFOR->DATPED_V)+' '+CLIFOR->ULTPED_V
+         IMP->(DBCOMMIT(),DBUNLOCK())
+         CLIFOR->(DBSKIP())
+      ENDDO
+      TITULO := 'Relatorio de Clientes sem Compra desde '+DTOC(DATINI)+IF(TIPO='V',' ('+LEFT(MECVEN->NOME_V,20)+')','')
+      CAMPOS := {'IMP->P1_V'}
+      IMP->(DBGOTOP())
+      WINDOW(03,0,21,79)
+      IMP->(DBEDIT(04,01,20,78,CAMPOS,,,{TITULO,TITULO}))
+      IF CONFIRMA(20,20,"Deseja Imprimir o Relat¢rio ?")
+         IMPRELDB(TITULO,,49)
+      ENDIF
+      IMP->(DBCLOSEAREA())
+      FERASE(ARQ+'.DBF')
+      EXIT
+   ENDIF
+ENDDO
+RESTSCREEN(,,,,TELA)
+CLIFOR->(DBCLOSEAREA())
+MECVEN->(DBCLOSEAREA())
+CONFIG->(DBCLOSEAREA())
+RETURN(.T.)

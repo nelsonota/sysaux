@@ -1,0 +1,16 @@
+FUNCTION EBASCAL()
+MEMVAR CODIGO
+IF BASCAL->CODIGO_V=0
+   AVISO("Imposs¡vel Excluir")
+   RETURN(.F.)
+ENDIF
+IF CONFIRMA(22,20,"Confirma Exclusao ?")
+   IF BASCAL->(RECLOCK(5))
+      CODIGO:=CODIGO-1
+      BASCAL->(DBDELETE())
+      BASCAL->(DBUNLOCK())
+      BASCAL->(DBSEEK(CODIGO,.T.))
+      RETURN(.T.)
+   ENDIF
+ENDIF
+RETURN(.T.)

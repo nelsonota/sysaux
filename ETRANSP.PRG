@@ -1,0 +1,16 @@
+FUNCTION ETRANSP()
+MEMVAR CODIGO
+IF TRANSP->CODIGO_V=0
+   AVISO("Imposs¡vel Excluir")
+   RETURN(.F.)
+ENDIF
+IF CONFIRMA(22,20,"Confirma Exclusao ?")
+   IF TRANSP->(RECLOCK(5))
+      CODIGO:=CODIGO-1
+      TRANSP->(DBDELETE())
+      TRANSP->(DBUNLOCK())
+      TRANSP->(DBSEEK(CODIGO,.T.))
+      RETURN(.T.)
+   ENDIF
+ENDIF
+RETURN(.T.)

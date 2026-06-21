@@ -1,0 +1,46 @@
+FUNCTION PCLIFOR(OPCAO)
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,NOMSEN
+
+*** VARIAVEIS PARA CADASTRO CLIENTES/FORNECEDORES
+MEMVAR CODIGO,NOME,FANTASIA,ENDERECO,BAIRRO,CIDADE,ESTADO,CEP,FONE1,FONE2,FAX
+MEMVAR ENDCOB,BAICOB,CIDCOB,ESTCOB,CEPCOB,FONECOB1,FONECOB2,FAXCOB,CLIFOR
+MEMVAR CGCCPF,RGINSEST,CONTATO,REFERE1,REFERE2,TELREF1,TELREF2
+IF CONFIRMA(20,20,"A impressora est  preparada ?")
+   DO WHILE ! ISPRINTER() .AND. LASTKEY()#27
+      AVISO("A impressora nao est  preparada ou nao est  conectada...")
+   ENDDO
+   IF LASTKEY()=27
+      RETURN(.F.)
+   ENDIF
+   LigaImpressora()
+   @ 01,02 SAY "Nome     : " + NOME
+   @ 02,02 SAY "Fantasia : " + FANTASIA
+   @ 03,02 SAY "Endereco : " + ENDERECO
+   @ 04,02 SAY "Bairro   : " + BAIRRO
+   @ 05,02 SAY "Cidade   : " + CIDADE
+   @ 05,45 SAY "Estado : "   + ESTADO
+   @ 05,57 SAY "C.E.P.: "    + TRANSFORM(CEP,"@R 99999-999")
+   @ 06,02 SAY "CGC / CPF: " + CGCCPF
+   @ 06,32 SAY "RG/I.Est.: " + RGINSEST
+   @ 07,02 SAY "Fone1    : " + TRANSFORM(FONE1,"@R (#999) ##99-9999")
+   @ 07,30 SAY "Fone2: " + TRANSFORM(FONE2,"@R (#999) ##99-9999")
+   @ 07,54 SAY "Fax: "       + TRANSFORM(FAX,"@R (#999) ##99-9999")
+   @ 08,02 SAY "Contato  : " + CONTATO
+   @ 09,02 SAY "Referen.1: " + REFERE1
+   @ 09,55 SAY "Fone : " + TRANSFORM(TELREF1,"@R (#999) ##99-9999")
+   @ 10,02 SAY "Referen.2: " + REFERE2
+   @ 10,55 SAY "Fone : " + TRANSFORM(TELREF2,"@R (#999) ##99-9999")
+   @ 12,1  SAY PADC("Dados Para Cobran‡a",78)
+   @ 14,2  SAY "Endereco : " + ENDCOB
+   @ 15,2  SAY "Bairro   : " + BAICOB
+   @ 16,2  SAY "Cidade   : " + CIDCOB
+   @ 16,45 SAY "Estado : "   + ESTCOB
+   @ 16,57 SAY "C.E.P.: "    + TRANSFORM(CEPCOB,"@R 99999-999")
+   @ 17,2  SAY "Fone1    : " + TRANSFORM(FONECOB1,"@R (#999) ##99-9999")
+   @ 17,30 SAY "Fone2: " + TRANSFORM(FONECOB2,"@R (#999) ##99-9999")
+   @ 17,54 SAY "Fax: "       + TRANSFORM(FAXCOB,"@R (#999) ##99-9999")
+   @ 0,0   SAY "  "
+   SET PRINTER TO
+   SET DEVICE TO SCREEN
+ENDIF
+RETURN(.T.)

@@ -1,0 +1,267 @@
+FUNCTION BAIXA()
+LOCAL OP,TELA,GETLIST:={},CODIGO
+MEMVAR DESCONTO,DEDUCAO,ACRES,VALDOC,MULTA,VALCOB,VALOR
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,NOMSEN
+
+MEMVAR CLIFOR,CODPLA,CHEQUE,CODPORTA
+
+LOCAL DOCEXT,DESC,DOCINT,BANCO,MOVI,PAGREC,DATVEN,DATEXT,DATINT,BOLETO,PROTESTO
+LOCAL CODBANBO,DUPLICA,CODBANDU,COBCHQ,CBCODBAN,COBBANCO,COBAGEN,COBCONTA,BANKREC
+TELA:=SAVESCREEN(0,0,24,80)
+SETCOLOR(CORTIT)
+@ 2,0 SAY "Baixas"
+WINDOW(3,0,24,79)
+DBF_CONFIG()
+MOVI:=BAN_MOVI()
+DBF_MOVI(MOVI)
+DBF_PLANO()
+DBF_CHEQUE()
+DBF_CLIFOR()
+DBF_PAGREC()
+DBF_BANK()
+DBF_PORTA()
+CLIFOR:=SPACE(LEN(PAGREC->CLIFOR_V))
+DO WHILE .T.
+   CHEQUE:=SPACE(LEN( (MOVI) ->CHEQUE_V))
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   @ 4,1  PROMPT " Contas … Pagar "
+   @ 4,17 PROMPT " Contas … Receber "
+   @ 5,1 TO 5,78
+   MENU TO OP
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   DO WHILE .T.
+      DBE_BANK(10,5,20,75)
+      IF LASTKEY()#27
+         IF BANK->CODIGO_V=0
+            AVISO("Selecione Um Banco")
+            LOOP
+         ENDIF
+      ENDIF
+      EXIT
+   ENDDO
+   IF LASTKEY()=27
+      LOOP
+   ENDIF
+   BANCO:=BANK->CODIGO_V
+   @ 4,45 SAY "Lan‡amento Para o Banco "+ BANK->NOME_V
+   IF OP=1
+      DO WHILE .T.
+         CHEQUE->(DBSETORDER(1))
+         CHEQUE->(DBSEEK(BANCO))
+         CHEQUE->(DBSETORDER(2))
+         DBSELECTAREA("CHEQUE","CHEQUE")
+         LOCATE FOR CHEQUE->CODBAN_V=BANCO .AND. EMPTY(CHEQUE->DATEMI_V)
+         IF FOUND()
+            CHEQUE:=CHEQUE->CHEQUE_V
+         ELSE
+            CHEQUE=SPACE(LEN(CHEQUE->CHEQUE_V))
+         ENDIF
+         @ 6,2 SAY "Cheque     :" GET CHEQUE PICT "@K!" VALID(CHEQUE->(DBSEEK(CHEQUE)).OR.EMPTY(CHEQUE))
+         READ
+         IF LASTKEY()=27
+            EXIT
+         ENDIF
+         IF ! EMPTY(CHEQUE)
+            DBSELECTAREA("CHEQUE","CHEQUE")
+            LOCATE FOR CHEQUE->CODBAN_V=BANCO .AND. CHEQUE->CHEQUE_V=CHEQUE
+            IF .NOT. FOUND() .AND. !EMPTY(CHEQUE)
+               AVISO("Este Cheque Nao Existe ...")
+               LOOP
+            ELSE
+               IF !EMPTY(CHEQUE)
+                  IF UPPER(CHEQUE->OBS_V)="CANCELADO"
+                     AVISO("Este Cheque Foi Cancelado")
+                     LOOP
+                  ENDIF
+                  IF !EMPTY(CHEQUE->DATBAI_V)
+                     AVISO("Este Cheque J  Foi Baixado ...")
+                     LOOP
+                  ENDIF
+                  IF !EMPTY(CHEQUE->DATEMI_V)
+                     AVISO("Este Cheque J  Foi Emitido "+TRANSFORM(CHEQUE->VALOR_V,"@R 999,999,999.99"))
+                  ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
+         EXIT
+      ENDDO
+      IF LASTKEY()=27
+         LOOP
+      ENDIF
+   ENDIF
+   DO WHILE .T.
+      PAGREC->(DBSETORDER(5))
+      DBE_PAGREC(10,5,20,75)
+      IF LASTKEY()=27
+         EXIT
+      ENDIF
+      IF LEFT(PAGREC->CODIGO_V,1)#IF(OP=1,"P","R")
+         IF(OP=1,AVISO("Selecione Uma Conta … Pagar"),AVISO("Selecione Uma Conta … Receber"))
+         LOOP
+      ENDIF
+      CLIFOR:=PAGREC->CLIFOR_V
+      EXIT
+   ENDDO
+   IF LASTKEY()=27
+      LOOP
+   ENDIF
+   CLIFOR->(DBSETORDER(1))
+   DO CASE
+      CASE OP=1
+         @ 7,2 SAY "Fornecedor : " + CLIFOR+" "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->NOME_V,SPACE(50))
+      CASE OP=2
+         @ 7,2 SAY "Cliente    : " + CLIFOR+" "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->NOME_V,SPACE(50))
+   ENDCASE
+   PAGREC  :=PAGREC->CODIGO_V
+   DOCEXT  :=PAGREC->DOCEXT_V
+   DATEXT  :=PAGREC->DATEXT_V
+   DESC    :=PAGREC->DESC_V
+   DOCINT  :=PAGREC->DOCINT_V
+   DATINT  :=PAGREC->DATINT_V
+   CODPLA  :=PAGREC->CODPLA_V
+   VALOR   :=PAGREC->VALOR_V
+   DATVEN  :=PAGREC->DATVEN_V
+   BOLETO  :=PAGREC->BOLETO_V
+   CODBANBO:=PAGREC->CODBANBO_V
+   DUPLICA :=PAGREC->DUPLICA_V
+   CODBANDU:=PAGREC->CODBANDU_V
+   COBCHQ  :=PAGREC->COBCHQ_V
+   CBCODBAN:=PAGREC->CBCODBAN_V
+   COBBANCO:=PAGREC->COBBANCO_V
+   COBAGEN :=PAGREC->COBAGEN_V
+   COBCONTA:=PAGREC->COBCONTA_V
+   PROTESTO:=PAGREC->PROTESTO_V
+   CODPORTA:=PAGREC->CODPORTA_V
+   BANKREC :=BANK->(RECNO())
+   DESCONTO:=0
+   DEDUCAO :=0
+   MULTA   :=0
+   ACRES   :=0
+   VALCOB  :=0
+   @ 8,02  SAY "Plano de Conta   :" GET CODPLA PICT "@!" VALID(SEA_CODPLA(CODPLA,8,30,IF(OP=1,"-","+")))
+   @ 9,02  SAY "Doc.Externo      :" GET DOCEXT PICT "@!"
+   @ 9,32  SAY "Data do Doc.Externo : " GET DATEXT
+   @ 10,2  SAY "Descri‡ao        :" GET DESC   PICT "@!"
+   @ 11,2  SAY "Doc.Interno      :" GET DOCINT PICT "@!"
+   @ 11,32 SAY "Data do Doc.Interno : " GET DATINT
+   @ 12,2  SAY "Vencimento       : " + DTOC(DATVEN)
+   IF OP=2
+      @ 12,45 SAY "Portador      :" GET CODPORTA PICT "@!" VALID(LASTKEY()=5 .OR. SEA_PORTA(CODPORTA,12,64))
+   ENDIF
+   @ 13,2  SAY "Valor Documento  : " + TRANSFORM(VALOR,"@R 999,999,999.99")
+   @ 14,2  SAY "Descontos        :" GET DESCONTO PICT "999,999,999.99" VALID(FBAIXA())
+   @ 15,2  SAY "Outras Dedu‡oes  :" GET DEDUCAO  PICT "999,999,999.99" VALID(FBAIXA())
+   @ 16,2  SAY "Mora/Multa       :" GET MULTA    PICT "999,999,999.99" VALID(FBAIXA())
+   @ 17,2  SAY "Outros Acr‚scimos:" GET ACRES    PICT "999,999,999.99" VALID(FBAIXA())
+   @ 14,45 SAY "Valor Pago    :" GET VALCOB PICT "@R 999,999,999.99" VALID(VALCOB<=(VALOR-DESCONTO-DEDUCAO+MULTA+ACRES))
+   @ 18,1  SAY PADC("Cobran‡a",78) COLOR CORTIT
+   @ 19,01 CLEAR TO 18,78
+   @ 19,02 SAY "Boleto    :" COLOR IF(!EMPTY(BOLETO),CORTIT,CORTEX)
+   @ 19,14 SAY BOLETO
+   @ 19,35 SAY "Banco : "+IF(BANK->(DBSEEK(CODBANBO)),BANK->NOME_V,SPACE(10))
+   @ 20,02 SAY "Duplicata :" COLOR IF(!EMPTY(DUPLICA),CORTIT,CORTEX)
+   @ 20,14 SAY DUPLICA
+   @ 20,35 SAY "Banco : "+IF(BANK->(DBSEEK(CODBANDU)),BANK->NOME_V,SPACE(10))
+   @ 21,02 SAY "Cheque    :" GET COBCHQ
+   @ 21,21 SAY "Banco   :" GET CBCODBAN
+   @ 21,36 GET COBBANCO
+   @ 22,21 SAY "Agˆncia :" GET COBAGEN
+   @ 22,36 SAY " Conta Corrente :" GET COBCONTA
+   BANK->(DBGOTO(BANKREC))
+   READ
+   IF LASTKEY()=27
+      LOOP
+   ENDIF
+   IF CONFIRMA(20,10,IF(VALCOB<(VALOR-DESCONTO-DEDUCAO+MULTA+ACRES),"Confirma Baixa Parcial ?","Confirma Baixa ?"))
+      IF (MOVI) ->(ADDREC(5))
+         (MOVI) ->DATLAN_V  :=DATE()
+         (MOVI) ->FUTVIS_V  :="F"
+         (MOVI) ->PAGREC_V  :=PAGREC
+         (MOVI) ->BANCO_V   :=BANCO
+         (MOVI) ->CHEQUE_V  :=CHEQUE
+         (MOVI) ->CLIFOR_V  :=CLIFOR
+         (MOVI) ->DOCEXT_V  :=DOCEXT
+         (MOVI) ->DATEXT_V  :=DATEXT
+         (MOVI) ->DESC_V    :=DESC
+         (MOVI) ->DOCINT_V  :=DOCINT
+         (MOVI) ->DATINT_V  :=DATINT
+         (MOVI) ->DATVEN_V  :=DATVEN
+         (MOVI) ->DATBAI_V  :=TRABALHO
+         (MOVI) ->VALOR_V   :=VALCOB
+         (MOVI) ->CODPLA_V  :=CODPLA
+         (MOVI) ->DESCONTO_V:=DESCONTO
+         (MOVI) ->DEDUCAO_V :=DEDUCAO
+         (MOVI) ->MULTA_V   :=MULTA
+         (MOVI) ->ACRES_V   :=ACRES
+         (MOVI) ->VALDOC_V  :=VALOR
+         (MOVI) ->BOLETO_V  :=BOLETO
+         (MOVI)->CODBANBO_V :=CODBANBO
+         (MOVI)->DUPLICA_V  :=DUPLICA
+         (MOVI)->CODBANDU_V :=CODBANDU
+         (MOVI)->COBCHQ_V   :=COBCHQ
+         (MOVI)->CBCODBAN_V :=CBCODBAN
+         (MOVI)->COBBANCO_V :=COBBANCO
+         (MOVI)->COBAGEN_V  :=COBAGEN
+         (MOVI)->COBCONTA_V :=COBCONTA
+         (MOVI) ->NOMSEN_V  :=NOMSEN
+         (MOVI) ->PROTESTO_V:=PROTESTO
+         (MOVI) ->CODPORTA_V:=CODPORTA
+         (MOVI) ->(DBUNLOCK())
+      ENDIF
+      IF BANK->(RECLOCK(5))
+         DO CASE
+            CASE OP=1
+               IF !EMPTY(CHEQUE)
+                  IF CHEQUE->(RECLOCK(5))
+                     CHEQUE->CODBAN_V:=BANCO
+                     CHEQUE->VALOR_V :=CHEQUE->VALOR_V+VALCOB
+                     CHEQUE->DATEMI_V:=TRABALHO
+                     CHEQUE->(DBUNLOCK())
+                  ENDIF
+               ELSE
+                  BANK->SALDO_V :=BANK->SALDO_V-VALCOB
+               ENDIF
+            CASE OP=2
+               BANK->SALDO_V :=BANK->SALDO_V+VALCOB
+         ENDCASE
+         BANK->(DBUNLOCK())
+      ENDIF
+      IF PAGREC->(RECLOCK(5))
+         IF VALCOB<(VALOR-DESCONTO-DEDUCAO+MULTA+ACRES)
+            IF CONFIG->(RECLOCK(5))
+               CONFIG->PAGREC_V:=CONFIG->PAGREC_V+1
+               CODIGO:=PAGREC+STRZERO(CONFIG->PAGREC_V,5,0)
+               CONFIG->(DBUNLOCK())
+            ENDIF
+            PAGREC->CODIGO_V:=CODIGO
+            PAGREC->DOCEXT_V:=PAGREC->DOCEXT_V+"-B"
+            PAGREC->VALOR_V :=PAGREC->VALOR_V+((MULTA+ACRES)-(DESCONTO-DEDUCAO))-VALCOB
+         ELSE
+            PAGREC->(DBDELETE())
+            PAGREC->(DBUNLOCK())
+         ENDIF
+      ENDIF
+      SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+      @ 6,1 CLEAR TO 18,78
+   ENDIF
+ENDDO
+CONFIG->(DBCLOSEAREA())
+(MOVI) ->(DBCLOSEAREA())
+PAGREC->(DBCLOSEAREA())
+CLIFOR->(DBCLOSEAREA())
+PLANO->(DBCLOSEAREA())
+BANK->(DBCLOSEAREA())
+PORTA->(DBCLOSEAREA())
+CHEQUE->(DBCLOSEAREA())
+RESTSCREEN(0,0,24,80,TELA)
+CLOSEWIN(3,0,20,79)
+RETURN(.T.)
+
+
+FUNCTION FBAIXA()
+MEMVAR VALCOB,VALOR,DESCONTO,DEDUCAO,MULTA,ACRES
+VALCOB:=round(VALOR-DESCONTO-DEDUCAO+MULTA+ACRES,2)
+@ 13,45  SAY "Valor … Pagar : " + TRANSFORM(VALCOB,"@R 999,999,999.99")
+RETURN(.T.)

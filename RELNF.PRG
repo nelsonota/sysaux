@@ -1,0 +1,93 @@
+FUNCTION RELNF(TIPO)
+LOCAL TELA,GETLIST:={},TITULO,VALMO,VALITOT
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+MEMVAR CLIFOR,LINHA,INICIO,FIM
+TELA:=SAVESCREEN()
+LINHA:={}
+INICIO:=CTOD("  /  /  ")
+FIM:=CTOD("  /  /  ")
+DBF_CONFIG()
+DBF_CLIFOR()
+DBF_NOTA()
+VALMO:=0
+VALITOT:=0
+CLIFOR:=SPACE(LEN(CLIFOR->CODIGO_V))
+WINDOW(IF(TIPO="CEMI".OR.TIPO="CCAN",10,11),10,13,60)
+NOTA->(DBSETORDER(5))
+DO WHILE .T.
+   IF TIPO="CEMI" .OR. TIPO="CCAN"
+      DATCFINIFIN(,"C")
+   ELSE
+      DATINIFIN()
+   ENDIF
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   NOTA->(DBSEEK(INICIO,.T.))
+   CLIFOR->(DBSETORDER(1))
+   DO WHILE NOTA->DATEMI_V>=INICIO .AND. NOTA->DATEMI_V<=FIM .AND. NOTA->(!EOF())
+      DO CASE
+         CASE TIPO="EMI"
+            TITULO:="Emitidas"
+         CASE TIPO="CEMI"
+            TITULO:="Emitidas por Cliente"
+            IF NOTA->CLIFOR_V#CLIFOR
+               NOTA->(DBSKIP())
+               LOOP
+            ENDIF
+         CASE TIPO="CAN"
+            TITULO:="Canceladas"
+            IF NOTA->CANCELA_V#"S"
+               NOTA->(DBSKIP())
+               LOOP
+            ENDIF
+         CASE TIPO="CCAN"
+            TITULO:="Canceladas por Cliente"
+            IF NOTA->CANCELA_V#"S"
+               NOTA->(DBSKIP())
+               LOOP
+            ELSE
+               IF NOTA->CLIFOR_V#CLIFOR
+                  NOTA->(DBSKIP())
+                  LOOP
+               ENDIF
+            ENDIF
+         OTHERWISE
+            NOTA->(DBSKIP())
+            LOOP
+      ENDCASE
+      CLIFOR->(DBSETORDER(1))
+      AADD(LINHA," "+STRZERO(NOTA->CODIGO_V,6,0)+" "+IF(CLIFOR->(DBSEEK(NOTA->CLIFOR_V)),LEFT(CLIFOR->NOME_V,25),SPACE(25))+" "+DTOC(NOTA->DATEMI_V)+"   "+TRANSFORM(NOTA->VALMO_V,"@R 999,999.99")+" "+TRANSFORM(NOTA->VALITOT_V,"@R 999,999.99")+" "+TRANSFORM(NOTA->VALMO_V+NOTA->VALITOT_V,"@R 999,999.99"))
+      AADD(LINHA," Faturamento:   "+IF(!EMPTY(NOTA->DATPAR1_V),DTOC(NOTA->DATPAR1_V),SPACE(8))+"   "+IF(!EMPTY(NOTA->DATPAR2_V),DTOC(NOTA->DATPAR2_V),SPACE(8))+"   "+IF(!EMPTY(NOTA->DATPAR3_V),DTOC(NOTA->DATPAR3_V),SPACE(8))+"   "+IF(!EMPTY(NOTA->DATPAR4_V),DTOC(NOTA->DATPAR4_V),SPACE(8))+"   "+IF(!EMPTY(NOTA->DATPAR5_V),DTOC(NOTA->DATPAR5_V),SPACE(8)))
+      AADD(LINHA,IF(NOTA->CANCELA_V="S"," Cancelada    ","              ")+IF(!EMPTY(NOTA->VALPAR1_V),TRANSFORM(NOTA->VALPAR1_V,"@R 999,999.99"),SPACE(10))+" "+IF(!EMPTY(NOTA->VALPAR2_V),TRANSFORM(NOTA->VALPAR2_V,"@R 999,999.99"),SPACE(10))+" "+IF(!EMPTY(NOTA->VALPAR3_V),TRANSFORM(NOTA->VALPAR3_V,"@R 999,999.99"),SPACE(10))+" "+IF(!EMPTY(NOTA->VALPAR4_V),TRANSFORM(NOTA->VALPAR4_V,"@R 999,999.99"),SPACE(10))+" "+IF(!EMPTY(NOTA->VALPAR5_V),TRANSFORM(NOTA->VALPAR5_V,"@R 999,999.99"),SPACE(10)))
+      AADD(LINHA," ")
+      IF NOTA->CANCELA_V#"S"
+         VALMO:=VALMO+NOTA->VALMO_V
+         VALITOT:=VALITOT+NOTA->VALITOT_V
+      ELSE
+         IF TIPO="CCAN" .OR. TIPO="CAN"
+            VALMO:=VALMO+NOTA->VALMO_V
+            VALITOT:=VALITOT+NOTA->VALITOT_V
+         ENDIF
+      ENDIF
+      NOTA->(DBSKIP())
+   ENDDO
+   WINDOW(5,0,23,79)
+   @ 6,1 SAY PADC("Relat¢rio de Notas Fiscais "+TITULO+" no per¡odo de "+DTOC(INICIO)+" at‚ "+DTOC(FIM),78) COLOR CORTIT
+   @ 7,1 SAY PADR("  Nota  Cliente                  Dt.Emissao   Vl.Servi‡os Vl.Itens   Vl.Total",78) COLOR CORTIT
+   @ 8,1 TO 8,78
+   @ 21,1 TO 21,78
+   @ 22,1 SAY     " Valor Total das Notas Fiscais               "+TRANSFORM(VALMO,"@R 999,999.99")+" "+TRANSFORM(VALITOT,"@R 999,999.99")+" "+TRANSFORM(VALITOT+VALMO,"@R 999,999.99")+" " COLOR CORTIT
+   ACHOICE(9,1,20,78,LINHA,.T.,"RELACHOFUN")
+   IF CONFIRMA(20,20,"Deseja Imprimir ?")
+      AADD(LINHA,REPLICATE("-",79))
+      AADD(LINHA," Valor Total das Notas Fiscais               "+TRANSFORM(VALMO,"@R 999,999.99")+" "+TRANSFORM(VALITOT,"@R 999,999.99")+" "+TRANSFORM(VALITOT+VALMO,"@R 999,999.99"))
+      IMPREL("Relatorio de Notas Fiscais "+TITULO+" no periodo de "+DTOC(INICIO)+" ate "+DTOC(FIM),"  Nota  Cliente                  Dt.Emissao   Vl.Servi‡os Vl.Itens   Vl.Total",50)
+   ENDIF
+   EXIT
+ENDDO
+CONFIG->(DBCLOSEAREA())
+CLIFOR->(DBCLOSEAREA())
+NOTA->(DBCLOSEAREA())
+RESTSCREEN(,,,,TELA)
+RETURN(.T.)

@@ -1,0 +1,15 @@
+FUNCTION EESTOQUE()
+MEMVAR CODIGO
+IF EMPTY(ESTOQUE->CODIGO_V)
+   AVISO("Imposs¡vel Excluir")
+   RETURN(.F.)
+ENDIF
+IF CONFIRMA(22,20,"Confirma Exclusao no Estoque?",.t.)
+   IF ESTOQUE->(RECLOCK())
+      ESTOQUE->(DBDELETE())
+      ESTOQUE->(DBUNLOCK())
+      ESTOQUE->(DBSEEK(CODIGO,.T.))
+      RETURN(.T.)
+   ENDIF
+ENDIF
+RETURN(.T.)

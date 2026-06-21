@@ -1,0 +1,92 @@
+FUNCTION TRANSP()
+LOCAL OP,TELA,TELA1
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+*** VARIAVEIS PARA CADASTRO DE TRANSPORTADORAS
+MEMVAR CODIGO,NOME,ENDERECO,CIDADE,ESTADO,CGC,INSEST,FONE1,FONE2,FAX,CONTATO
+MEMVAR CIDSERV1,CIDSERV2,CIDSERV3, NUMERO, COMPLEM
+TELA:=SAVESCREEN(0,0,24,80)
+SETCOLOR(CORTIT)
+@ 08,0 SAY "Transportadoras"
+WINDOW(22,0,24,42)
+WINDOW(09,0,22,79)
+SETCOLOR(CORTEX)
+@ 23,42 SAY CHR(219)
+DBF_CONFIG()
+DBF_TRANSP()
+dbf_cadcid()
+DO WHILE .T.
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   CODIGO  :=TRANSP->CODIGO_V
+   NOME    :=TRANSP->NOME_V
+   ENDERECO:=TRANSP->ENDERECO_V
+   NUMERO  :=TRANSP->NUMERO_V
+   COMPLEM :=TRANSP->COMPLEM_V
+   CIDADE  :=TRANSP->CIDADE_V
+   ESTADO  :=TRANSP->ESTADO_V
+   CGC     :=TRANSP->CGC_V
+   INSEST  :=TRANSP->INSEST_V
+   FONE1   :=TRANSP->FONE1_V
+   FONE2   :=TRANSP->FONE2_V
+   FAX     :=TRANSP->FAX_V
+   CONTATO :=TRANSP->CONTATO_V
+   CIDSERV1:=TRANSP->CIDSERV1_V
+   CIDSERV2:=TRANSP->CIDSERV2_V
+   CIDSERV3:=TRANSP->CIDSERV3_V
+   @ 10,2  SAY "Registrado por : "+TRANSP->NOMSEN_V
+   @ 11,2  SAY "C¢digo   : " + STRZERO(CODIGO,5,0)
+   @ 12,2  SAY "Nome     : " + NOME
+   @ 13,2  SAY "Endereco : " + LEFT(ENDERECO,35)
+   @ 13,49 SAY "N.: " + NUMERO
+   @ 13,60 say "Compl.: " + COMPLEM
+   @ 14,2  SAY "Cidade   : " + CIDADE
+   @ 14,45 SAY "Estado : " + ESTADO
+   @ 15,2  SAY "C.G.C.   : " + CGC
+   @ 15,43 SAY "Ins.Est. : " + INSEST
+   @ 16,02 SAY "Fone1    : " + TRANSFORM(FONE1,"@R (#999) ##99-9999")
+   @ 16,30 SAY "Fone2: " + TRANSFORM(FONE2,"@R (#999) ##99-9999")
+   @ 16,54 SAY "Fax: "       + TRANSFORM(FAX,"@R (#999) ##99-9999")
+   @ 17,02 SAY "Contato  : " + CONTATO
+   @ 18,01 SAY PADC("Cidades de Servi‡o",78) COLOR CORTIT
+   @ 19,02 SAY "Cidade 1 : " + CIDSERV1
+   @ 20,02 SAY "Cidade 2 : " + CIDSERV2
+   @ 21,02 SAY "Cidade 3 : " + CIDSERV3
+   @ 23,1  PROMPT " Incluir "
+   @ 23,10 PROMPT " Buscar "
+   @ 23,18 PROMPT " Alterar "
+   @ 23,27 PROMPT " Apagar "
+   @ 23,35 PROMPT " Texto "
+   MENU TO OP
+   DO CASE
+      CASE OP=1
+         ITRANSP()
+      CASE OP=2
+         BTRANSP()
+      CASE OP=3
+         ATRANSP()
+      CASE OP=4
+         ETRANSP()
+      CASE OP=5
+         TELA1:=SAVESCREEN(0,0,24,80)
+         WINDOW(5,0,20,79)
+         SETCOLOR(CORTIT)
+         @ 6,2 SAY PADC(ALLTRIM(NOME),76)
+         SETCOLOR(CORTEX)
+         @ 7,1 TO 7,78
+         SETCOLOR("N/W")
+         IF TRANSP->(RECLOCK(5))
+            TRANSP->TEXTO_V:=MEMOEDIT(TRANSP->TEXTO_V,8,2,19,77,.T.,"MemoFunction")
+            TRANSP->(DBUNLOCK())
+         ELSE
+            AVISO("Existe Outro Usu rio Utilizando Este Registro , Tente Mais Tarde ...")
+         ENDIF
+         RESTSCREEN(0,0,24,80,TELA1)
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+CONFIG->(DBCLOSEAREA())
+TRANSP->(DBCLOSEAREA())
+cadcid->(dbclosearea())
+RESTSCREEN(0,0,24,80,TELA)
+CLOSEWIN(09,0,22,79)
+RETURN(.T.)

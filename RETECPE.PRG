@@ -1,0 +1,355 @@
+FUNCTION RETECPE(OPCAO)  // RELATORIO DE ENTRADA DE FICHAS POR PERIODO
+LOCAL GETLIST:={},TELA,X,TITULO,Y,M,I
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO,CLIFOR,MECVEN
+MEMVAR LINHA,LINHA2,INICIO,FIM
+TELA  :=SAVESCREEN(0,0,24,80)
+LINHA :={}
+LINHA2:={}
+Y:=0
+I:=0
+M:=0
+INICIO:=CTOD("  /  /  ")
+FIM   :=CTOD("  /  /  ")
+DBF_CONFIG()
+DBF_CLIFOR()
+DBF_TECNICA()
+DBF_MECVEN()
+CLIFOR->(DBSETORDER(1))
+MECVEN->(DBSETORDER(1))
+DO WHILE .T.
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   IF OPCAO=="CLI" .OR. OPCAO=="SAIC" .OR. OPCAO=="EXE2C"
+      CLIFOR:=SPACE(LEN(CLIFOR->CODIGO_V))
+      DATCFINIFIN(,"C")
+   ELSE
+      IF OPCAO=="MEC" .OR. OPCAO=="SAIM" .OR. OPCAO=="EXE2M"
+         MECVEN:=SPACE(LEN(MECVEN->CODIGO_V))
+         DATMVINIFIN(,"M")
+      ELSE
+         DATINIFIN()
+      ENDIF
+   ENDIF
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   X:=0
+   DO CASE
+      CASE OPCAO=="GER"
+         TITULO:="com Entrada"
+         TECNICA->(DBSETORDER(3))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATENT_V>=INICIO .AND. TECNICA->DATENT_V<=FIM
+            TECLINHA()
+            X:=X+8
+            Y++
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="CLI"
+         TITULO:="por cliente"
+         TECNICA->(DBSETORDER(3))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATENT_V>=INICIO .AND. TECNICA->DATENT_V<=FIM
+            IF TECNICA->CLIFOR_V=CLIFOR
+               TECLINHACLI()
+               X:=X+8
+               Y++
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SORC"
+         TITULO:="sem Orcamento"
+         TECNICA->(DBSETORDER(3))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATENT_V>=INICIO .AND. TECNICA->DATENT_V<=FIM
+            IF EMPTY(TECNICA->DATORC_V).AND.EMPTY(TECNICA->DATEXE_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="ORC"
+         TITULO:="com Orcamento"
+         TECNICA->(DBSETORDER(4))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATORC_V>=INICIO .AND. TECNICA->DATORC_V<=FIM
+            IF !EMPTY(TECNICA->DATORC_V).AND.EMPTY(TECNICA->DATEXE_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="MEC"
+         TITULO:="por mecanico"
+         TECNICA->(DBSETORDER(4))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATORC_V>=INICIO .AND. TECNICA->DATORC_V<=FIM
+            IF TECNICA->MECVEN_V=MECVEN.AND.EMPTY(TECNICA->DATEXE_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V).AND.!EMPTY(TECNICA->DATORC_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAPR"
+         TITULO:="sem Aprovacao"
+         TECNICA->(DBSETORDER(4))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATORC_V>=INICIO .AND. TECNICA->DATORC_V<=FIM
+            IF !EMPTY(TECNICA->DATORC_V).AND.EMPTY(TECNICA->DATAPR_V).AND.EMPTY(TECNICA->DATEXE_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="APR"
+         TITULO:="com Aprovacao"
+         TECNICA->(DBSETORDER(5))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATAPR_V>=INICIO .AND. TECNICA->DATAPR_V<=FIM
+            IF !EMPTY(TECNICA->DATORC_V).AND.!EMPTY(TECNICA->DATAPR_V).AND.EMPTY(TECNICA->DATEXE_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SEXE"
+         TITULO:="sem Saida de Pecas"
+         TECNICA->(DBSETORDER(5))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATAPR_V>=INICIO .AND. TECNICA->DATAPR_V<=FIM
+            IF !EMPTY(TECNICA->DATORC_V).AND.!EMPTY(TECNICA->DATAPR_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SEXE2"
+         TITULO:="sem Execucao"
+         TECNICA->(DBSETORDER(6))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATEXE_V>=INICIO .AND. TECNICA->DATEXE_V<=FIM
+            IF !EMPTY(TECNICA->DATEXE_V).AND.EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="EXE2"
+         TITULO:="com Execucao"
+         TECNICA->(DBSETORDER(7))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATEXE2_V>=INICIO .AND. TECNICA->DATEXE2_V<=FIM
+            IF !EMPTY(TECNICA->DATEXE2_V).AND.EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="EXE2C"
+         TITULO:="com Execucao"
+         TECNICA->(DBSETORDER(7))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATEXE2_V>=INICIO .AND. TECNICA->DATEXE2_V<=FIM
+            IF TECNICA->CLIFOR_V==CLIFOR .AND. EMPTY(TECNICA->DATSAI_V)
+               TECLINHACLI()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="EXE2M"
+         TITULO:="com Execucao"
+         TECNICA->(DBSETORDER(7))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATEXE2_V>=INICIO .AND. TECNICA->DATEXE2_V<=FIM
+            IF TECNICA->MECVEN_V==MECVEN .AND. EMPTY(TECNICA->DATSAI_V)
+               TECLINHA()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAI"
+         TITULO:="com Sa¡da"
+         TECNICA->(DBSETORDER(8))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATSAI_V>=INICIO .AND. TECNICA->DATSAI_V<=FIM
+            TECLIN2()
+            X:=X+8
+            Y++
+            M:=M+TECNICA->VALMO_V
+            I:=I+TECNICA->VALITOT_V
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAIE"
+         TITULO:="com Sa¡da e Pronta"
+         TECNICA->(DBSETORDER(8))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATSAI_V>=INICIO .AND. TECNICA->DATSAI_V<=FIM
+            IF ! EMPTY(TECNICA->DATEXE2_V)
+               TECLIN2()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAIC"
+         TITULO:="com Saida"
+         TECNICA->(DBSETORDER(8))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATSAI_V>=INICIO .AND. TECNICA->DATSAI_V<=FIM
+            IF TECNICA->CLIFOR_V=CLIFOR
+               TECLINHACLI()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAIM"
+         TITULO:="com Sa¡da"
+         TECNICA->(DBSETORDER(8))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATSAI_V>=INICIO .AND. TECNICA->DATSAI_V<=FIM
+            IF TECNICA->MECVEN_V=MECVEN
+               TECLIN2()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAIP"
+         TITULO:="com Pendˆncia"
+         TECNICA->(DBSETORDER(8))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATSAI_V>=INICIO .AND. TECNICA->DATSAI_V<=FIM
+            IF EMPTY(TECNICA->DATPAG_V)
+               TECLIN2()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+      CASE OPCAO=="SAINP"
+         TITULO:="sem Pendˆncia"
+         TECNICA->(DBSETORDER(8))
+         TECNICA->(DBSEEK(INICIO,.T.))
+         DO WHILE X<=4080 .AND. TECNICA->DATSAI_V>=INICIO .AND. TECNICA->DATSAI_V<=FIM
+            IF !EMPTY(TECNICA->DATPAG_V)
+               TECLIN2()
+               X:=X+8
+               Y++
+               M:=M+TECNICA->VALMO_V
+               I:=I+TECNICA->VALITOT_V
+            ENDIF
+            TECNICA->(DBSKIP())
+         ENDDO
+   ENDCASE
+   WINDOW(3,0,22,79)
+   SETCOLOR(CORTIT)
+   DO CASE
+      CASE OPCAO=="GER".OR.OPCAO=="SORC".OR.OPCAO=="ORC".OR.OPCAO=="SAPR".OR.OPCAO=="APR".OR.OPCAO=="SEXE".OR.OPCAO=="EXE".OR.OPCAO=="SEXE2".OR.OPCAO=="EXE2".OR.OPCAO=="SSAI".OR.OPCAO=="SAI".OR.OPCAO=="SAIE".OR.OPCAO=="SAIP".OR.OPCAO=="SAINP"
+         @ 4,1 SAY PADC("Relat¢rio de Fichas "+TITULO+" no Per¡odo de "+DTOC(INICIO)+" … "+DTOC(FIM),78)
+      CASE OPCAO=="CLI".OR.OPCAO=="EXE2C".OR.OPCAO=="SAIC"
+         @ 4,1 SAY PADC("Fichas "+TITULO+" no Per¡odo de "+DTOC(INICIO)+" … "+DTOC(FIM)+" "+LEFT(CLIFOR->NOME_V,25),78)
+      CASE OPCAO=="MEC".OR.OPCAO=="EXE2M".OR.OPCAO=="SAIM"
+         @ 4,1 SAY PADC("Fichas "+TITULO+" no Per¡odo de "+DTOC(INICIO)+" … "+DTOC(FIM)+" "+LEFT(MECVEN->NOME_V,25),78)
+   ENDCASE
+   @ 21,1 SAY PADR(TRANSFORM(Y,"@R 9,999")+" Fichas "+IF(I+M=0,"","Mao de Obra: "+TRANSFORM(M,"@R 999,999.99")+" Itens: "+TRANSFORM(I,"@R 999,999.99")+" Total: "+TRANSFORM(I+M,"@R 999,999,999.99")),78)
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   @ 5,1 TO 5,78
+   @ 20,1 TO 20,78
+   ACHOICE(6,1,19,78,LINHA2,.T.,"RELACHOFUN")
+   IF CONFIRMA(20,20,"Deseja Imprimir o Relat¢rio ?")
+      AADD(LINHA,REPLICATE("-",79))
+      AADD(LINHA,TRANSFORM(Y,"@R 9,999")+" Fichas "+IF(I+M=0,"","Mao de Obra: "+TRANSFORM(M,"@R 999,999.99")+" Itens: "+TRANSFORM(I,"@R 999,999.99")+" Total: "+TRANSFORM(I+M,"@R 999,999,999.99")))
+      DO CASE
+         CASE OPCAO=="GER".OR.OPCAO=="SORC".OR.OPCAO=="ORC".OR.OPCAO=="SAPR".OR.OPCAO=="APR".OR.OPCAO=="SEXE".OR.OPCAO=="EXE".OR.OPCAO=="SEXE2".OR.OPCAO=="EXE2".OR.OPCAO=="SSAI".OR.OPCAO=="MEC".OR.OPCAO=="EXE2M"
+            C_IMPREL("Relatorio de Fichas "+TITULO+" no Periodo de "+DTOC(INICIO)+" a "+DTOC(FIM),"Ficha  Cliente        Equipamento                  Dt.Entr. Dt.Orcam. Dt.Aprov. Dt.Pecas  Dt.Exec.  Dt.Saida   Vl.Orcamento Nota F.",48)
+         CASE OPCAO=="SAI".OR.OPCAO=="SAIP".OR.OPCAO=="SAINP".OR.OPCAO=="SAIM".OR.OPCAO=="SAIE"
+            C_IMPREL("Relatorio de Fichas "+TITULO+" no Periodo de "+DTOC(INICIO)+" a "+DTOC(FIM),"Ficha  Cliente        Equipamento                  Dt.Entr. Dt.Orcam. Dt.Aprov. Dt.Pecas  Dt.Exec.  Dt.Saida   Vl.Orcamento Nota F.",48)
+         CASE OPCAO=="CLI".OR.OPCAO=="EXE2C".OR.OPCAO=="SAIC"
+            C_IMPREL("Fichas "+TITULO+" no Periodo de "+DTOC(INICIO)+" a "+DTOC(FIM)+" "+LEFT(CLIFOR->NOME_V,25),"Ficha  Mecanico       Equipamento                  Dt.Entr. Dt.Orcam. Dt.Aprov. Dt.Pecas  Dt.Exec.  Dt.Saida   Vl.Orcamento Nota F.",48)
+      ENDCASE
+   ENDIF
+   EXIT
+ENDDO
+CONFIG->(DBCLOSEAREA())
+CLIFOR->(DBCLOSEAREA())
+TECNICA->(DBCLOSEAREA())
+MECVEN->(DBCLOSEAREA())
+RESTSCREEN(0,0,24,80,TELA)
+CLOSEWIN(IF(OPCAO#"CLI".AND.OPCAO#"MEC",10,09),10,12,60)
+RETURN(.T.)
+
+FUNCTION TECLINHA()
+MEMVAR LINHA,LINHA2
+   CLIFOR->(DBSETORDER(1))
+   AADD(LINHA,TECNICA->CODIGO_V+"  "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),LEFT(CLIFOR->NOME_V,13),SPACE(17))+"  "+LEFT(TRIM(TECNICA->PLACA_V)+" "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+SPACE(26-LEN(TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V))),26)+"  "+;
+              DTOC(TECNICA->DATENT_V)+"  "+DTOC(TECNICA->DATORC_V)+"  "+DTOC(TECNICA->DATAPR_V)+"  "+DTOC(TECNICA->DATEXE_V)+"  "+DTOC(TECNICA->DATEXE2_V)+"  "+DTOC(TECNICA->DATSAI_V)+"   "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V,"@R 9,999,999.99")+"  "+STRZERO(TECNICA->NOTA_V,6,0))
+   AADD(LINHA2," C¢digo     : "+TECNICA->CODIGO_V+"      Cliente : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->NOME_V,SPACE(50)))
+   AADD(LINHA2," Dt.Entrada : "+DTOC(TECNICA->DATENT_V)+"   Dt.Or‡amento : "+DTOC(TECNICA->DATORC_V)+" Dt.Aprova‡ao : "+DTOC(TECNICA->DATAPR_V))
+   AADD(LINHA2," Dt.Pe‡as   : "+DTOC(TECNICA->DATEXE_V)+"   Dt.Execu‡ao  : "+DTOC(TECNICA->DATEXE2_V)+" Dt.Sa¡da     : "+DTOC(TECNICA->DATSAI_V))
+   AADD(LINHA2," Garantia   : "+IF(!EMPTY(TECNICA->GARANTIA_V),TECNICA->GARANTIA_V,SPACE(6))+" M.Obra: "+TRANSFORM(TECNICA->VALMO_V,"@R 9,999.99")+" Itens: "+TRANSFORM(TECNICA->VALITOT_V,"@R 9,999.99")+" Total: "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V,"@R 999,999,999.99"))
+   AADD(LINHA2," Equipament.: "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V)+SPACE(26-LEN(TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V))))
+   AADD(LINHA2," Nota Fiscal: "+STRZERO(TECNICA->NOTA_V,6,0))
+   AADD(LINHA2," ")
+RETURN(.T.)
+
+FUNCTION TECLIN2()
+MEMVAR LINHA,LINHA2
+   CLIFOR->(DBSETORDER(1))
+   AADD(LINHA,TECNICA->CODIGO_V+"  "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),LEFT(CLIFOR->NOME_V,13),SPACE(17))+"  "+LEFT(TRIM(TECNICA->PLACA_V)+" "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+SPACE(26-LEN(TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V))),26)+"  "+;
+              DTOC(TECNICA->DATENT_V)+"  "+DTOC(TECNICA->DATORC_V)+"  "+DTOC(TECNICA->DATAPR_V)+"  "+DTOC(TECNICA->DATEXE2_V)+"  "+DTOC(TECNICA->DATSAI_V)+"  "+DTOC(TECNICA->DATPAG_V)+"   "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V,"@R 9,999,999.99")+"  "+STRZERO(TECNICA->NOTA_V,6,0))
+   AADD(LINHA2," C¢digo     : "+TECNICA->CODIGO_V+"      Cliente : "+IF(CLIFOR->(DBSEEK(TECNICA->CLIFOR_V)),CLIFOR->NOME_V,SPACE(50)))
+   AADD(LINHA2," Dt.Entrada : "+DTOC(TECNICA->DATENT_V)+"   Dt.Or‡amento : "+DTOC(TECNICA->DATORC_V)+" Dt.Aprova‡ao : "+DTOC(TECNICA->DATAPR_V))
+   AADD(LINHA2," Dt.Execu‡ao: "+DTOC(TECNICA->DATEXE2_V)+"   Dt.Sa¡da     : "+DTOC(TECNICA->DATSAI_V)+" Dt.Fechamento: "+DTOC(TECNICA->DATPAG_V))
+   AADD(LINHA2," Garantia   : "+IF(!EMPTY(TECNICA->GARANTIA_V),TECNICA->GARANTIA_V,SPACE(6))+" M.Obra: "+TRANSFORM(TECNICA->VALMO_V,"@R 9,999.99")+" Itens: "+TRANSFORM(TECNICA->VALITOT_V,"@R 9,999.99")+" Total: "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V,"@R 999,999,999.99"))
+   AADD(LINHA2," Equipament.: "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V)+SPACE(26-LEN(TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V))))
+   AADD(LINHA2," Nota Fiscal: "+STRZERO(TECNICA->NOTA_V,6,0))
+   AADD(LINHA2," ")
+RETURN(.T.)
+
+FUNCTION TECLINHACLI()
+MEMVAR LINHA,LINHA2
+   CLIFOR->(DBSETORDER(1))
+   AADD(LINHA,TECNICA->CODIGO_V+"  "+IF(MECVEN->(DBSEEK(TECNICA->MECVEN_V)),LEFT(MECVEN->NOME_V,13),SPACE(17))+"  "+LEFT(TRIM(TECNICA->PLACA_V)+" "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+SPACE(26-LEN(TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V))),26)+"  "+;
+              DTOC(TECNICA->DATENT_V)+"  "+DTOC(TECNICA->DATORC_V)+"  "+DTOC(TECNICA->DATAPR_V)+"  "+DTOC(TECNICA->DATEXE_V)+"  "+DTOC(TECNICA->DATEXE2_V)+"  "+DTOC(TECNICA->DATSAI_V)+"   "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V,"@R 9,999,999.99")+"  "+STRZERO(TECNICA->NOTA_V,6,0))
+   AADD(LINHA2," C¢digo     : "+TECNICA->CODIGO_V+"     Mecƒnico : "+IF(MECVEN->(DBSEEK(TECNICA->MECVEN_V)),MECVEN->NOME_V,SPACE(50)))
+   AADD(LINHA2," Dt.Entrada : "+DTOC(TECNICA->DATENT_V)+"   Dt.Or‡amento : "+DTOC(TECNICA->DATORC_V)+" Dt.Aprova‡ao : "+DTOC(TECNICA->DATAPR_V))
+   AADD(LINHA2," Dt.Pe‡as   : "+DTOC(TECNICA->DATEXE_V)+"   Dt.Execu‡ao  : "+DTOC(TECNICA->DATEXE2_V)+" Dt.Sa¡da     : "+DTOC(TECNICA->DATSAI_V))
+   AADD(LINHA2," Garantia   : "+IF(!EMPTY(TECNICA->GARANTIA_V),TECNICA->GARANTIA_V,SPACE(6))+" M.Obra: "+TRANSFORM(TECNICA->VALMO_V,"@R 9,999.99")+" Itens: "+TRANSFORM(TECNICA->VALITOT_V,"@R 9,999.99")+" Total: "+TRANSFORM(TECNICA->VALITOT_V+TECNICA->VALMO_V,"@R 999,999,999.99"))
+   AADD(LINHA2," Equipament.: "+TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V)+SPACE(26-LEN(TRIM(TECNICA->ITEM_V)+" "+TRIM(TECNICA->MARCA_V)+" "+TRIM(TECNICA->MODELO_V)+" "+TRIM(TECNICA->PLACA_V))))
+   AADD(LINHA2," Nota Fiscal: "+STRZERO(TECNICA->NOTA_V,6,0))
+   AADD(LINHA2," ")
+RETURN(.T.)

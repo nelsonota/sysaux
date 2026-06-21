@@ -1,0 +1,142 @@
+FUNCTION TRANSBAN()
+LOCAL  TELA,CODBAN1,CODBAN2,MOTIVO,VALOR,MOVI,CHEQUE,GETLIST:={}
+LOCAL  PAGREC
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+MEMVAR CODBAN,CODPLA
+TELA:=SAVESCREEN()
+SETCOLOR(CORTIT)
+@ 11,26 SAY "Transferˆncias"
+WINDOW(12,26,19,63)
+CODBAN:=0
+DBF_CONFIG()
+MOVI:=BAN_MOVI()
+DBF_MOVI(MOVI)
+DBF_PLANO()
+DBF_BANK()
+DBF_CHEQUE()
+VALOR:=0
+CODPLA:=SPACE(LEN((MOVI) ->CODPLA_V))
+MOTIVO:=SPACE(20)
+DO WHILE .T.
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   @ 13,28 SAY "Do Banco    :" GET CODBAN PICT "99999" VALID(SEA_BANK(CODBAN,13,48))
+   READ
+   IF LASTKEY()=27
+      EXIT
+   ENDIF
+   CODBAN1:=CODBAN
+   DO WHILE .T.
+      CHEQUE->(DBSETORDER(1))
+      CHEQUE->(DBSEEK(CODBAN))
+      CHEQUE->(DBSETORDER(2))
+      DBSELECTAREA("CHEQUE","CHEQUE")
+      LOCATE FOR CHEQUE->CODBAN_V=CODBAN .AND. EMPTY(CHEQUE->DATEMI_V)
+      IF FOUND()
+         CHEQUE:=CHEQUE->CHEQUE_V
+      ELSE
+         CHEQUE=SPACE(LEN(CHEQUE->CHEQUE_V))
+      ENDIF
+      @ 14,28 SAY "Cheque      :" GET CHEQUE PICT "@K!" VALID(CHEQUE->(DBSEEK(CHEQUE)).OR.EMPTY(CHEQUE))
+      READ
+      IF LASTKEY()=27
+         EXIT
+      ENDIF
+      DBSELECTAREA("CHEQUE","CHEQUE")
+      LOCATE FOR CHEQUE->CODBAN_V=CODBAN .AND. CHEQUE->CHEQUE_V=CHEQUE
+      IF .NOT. FOUND() .AND. !EMPTY(CHEQUE)
+         AVISO("Este Cheque Nao Existe ...")
+         LOOP
+      ELSE
+         IF !EMPTY(CHEQUE)
+            IF UPPER(CHEQUE->OBS_V)="CANCELADO"
+               AVISO("Este Cheque Foi Cancelado")
+               LOOP
+            ENDIF
+            IF !EMPTY(CHEQUE->DATBAI_V)
+               AVISO("Este Cheque J  Foi Baixado ...")
+               LOOP
+            ENDIF
+            IF !EMPTY(CHEQUE->DATEMI_V)
+               AVISO("Este Cheque J  Foi Emitido "+TRANSFORM(CHEQUE->VALOR_V,"@R 999,999,999.99"))
+            ENDIF
+         ENDIF
+      ENDIF
+      EXIT
+   ENDDO
+   IF LASTKEY()=27
+      LOOP
+   ENDIF
+   CODBAN:=0
+   @ 15,28 SAY "Valor       :" GET VALOR  PICT "@R 999,999,999.99" VALID(VALOR>0)
+   @ 16,28 SAY "Para o Banco:" GET CODBAN PICT "99999" VALID(SEA_BANK(CODBAN,16,48).AND.CODBAN<>CODBAN1)
+   @ 17,28 SAY "Motivo      :" GET MOTIVO PICT "@K!"
+   @ 18,28 SAY "Pl.de Conta :" GET CODPLA PICT "@K!" VALID(SEA_CODPLA(CODPLA,18,47,"="))
+   READ
+   IF LASTKEY()=27
+      LOOP
+   ENDIF
+   CODBAN2:=CODBAN
+   IF CONFIRMA(20,20,"Confirma Transferˆncia Banc ria ?")
+      IF CONFIG->(RECLOCK(5))
+         CONFIG->VISTA_V:=CONFIG->VISTA_V+1
+         PAGREC:=STRZERO(CONFIG->VISTA_V,5,0)
+         CONFIG->(DBUNLOCK())
+      ELSE
+         EXIT
+      ENDIF
+      IF BANK->(DBSEEK(CODBAN1))
+         IF .NOT. EMPTY(CHEQUE)
+            IF CHEQUE->(RECLOCK(5))
+               CHEQUE->DATEMI_V:=TRABALHO
+               CHEQUE->VALOR_V :=CHEQUE->VALOR_V+VALOR
+               CHEQUE->(DBUNLOCK())
+            ENDIF
+         ELSE
+            IF BANK->(RECLOCK(5))
+               BANK->SALDO_V:=BANK->SALDO_V-VALOR
+               BANK->(DBUNLOCK())
+            ENDIF
+         ENDIF
+      ENDIF
+      IF (MOVI) ->(ADDREC(5))
+         (MOVI)->DATLAN_V  :=DATE()
+         (MOVI)->FUTVIS_V  :="V"
+         (MOVI)->PAGREC_V  :="P"+PAGREC
+         (MOVI)->BANCO_V   :=CODBAN1
+         (MOVI)->CHEQUE_V  :=CHEQUE
+         (MOVI)->DATVEN_V  :=TRABALHO
+         (MOVI)->DATBAI_V  :=TRABALHO
+         (MOVI)->DESC_V    :=MOTIVO+"TRANSFERENCIA"
+         (MOVI)->VALOR_V   :=VALOR
+         (MOVI)->CODPLA_V  :=CODPLA
+         (MOVI)->(DBUNLOCK())
+      ENDIF
+      IF BANK->(DBSEEK(CODBAN2))
+         IF BANK->(RECLOCK(5))
+            BANK->SALDO_V:=BANK->SALDO_V+VALOR
+            BANK->(DBUNLOCK())
+         ENDIF
+      ENDIF
+      IF (MOVI) ->(ADDREC(5))
+         (MOVI)->DATLAN_V  :=DATE()
+         (MOVI)->FUTVIS_V  :="V"
+         (MOVI)->PAGREC_V  :="R"+PAGREC
+         (MOVI)->BANCO_V   :=CODBAN2
+         (MOVI)->DATBAI_V  :=TRABALHO
+         (MOVI)->DATVEN_V  :=TRABALHO
+         (MOVI)->DESC_V    :=MOTIVO+"TRANSFERENCIA"
+         (MOVI)->VALOR_V   :=VALOR
+         (MOVI)->CODPLA_V  :=CODPLA
+         (MOVI)->(DBUNLOCK())
+      ENDIF
+      EXIT
+   ENDIF
+ENDDO
+(MOVI)->(DBCLOSEAREA())
+CONFIG->(DBCLOSEAREA())
+PLANO ->(DBCLOSEAREA())
+BANK  ->(DBCLOSEAREA())
+CHEQUE->(DBCLOSEAREA())
+RESTSCREEN(,,,,TELA)
+CLOSEWIN(12,26,19,63)
+RETURN(.T.)

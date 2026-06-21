@@ -1,0 +1,26 @@
+FUNCTION MAUMENTO()
+LOCAL  TELA,OP
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+TELA:=SAVESCREEN()
+WINDOW(15,35,20,52)
+DO WHILE .T.
+   @ 16,36 PROMPT " Geral          "
+   @ 17,36 PROMPT " por C¢digo     " 
+   @ 18,36 PROMPT " por Fornecedor "
+   @ 19,36 PROMPT " por Fam¡lia    "
+   MENU TO OP
+   DO CASE
+      CASE OP=1
+         AUMENTO("G")
+      CASE OP=2
+         AUMENTO("O")
+      CASE OP=3
+         AUMENTO("F")
+      CASE OP=4
+         AUMENTO("A")
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+RESTSCREEN(,,,,TELA)
+RETURN(.T.)

@@ -1,0 +1,135 @@
+FUNCTION PAGREC(OPCAO)
+LOCAL OP,TELA
+MEMVAR CORTIT,CORTEX,CORPAR,CORBAR,CORDES,LEVEL,CODSEN,TRABALHO
+
+*** VARIAVEIS P/ CADASTRO DE CONTAS A PAGAR/RECEBER
+MEMVAR PAGREC,CODIGO,CLIFOR,DOCEXT,DESC,DOCINT,DATVEN,VALOR,CODPLA,DATEXT
+MEMVAR DATINT
+*** VARIAVEIS DE COBRANCA
+MEMVAR BOLETO,CODBANBO,DUPLICA,CODBANDU,COBCHQ,CBCODBAN,COBBANCO
+MEMVAR COBAGEN,COBCONTA,CODPORTA
+TELA:=SAVESCREEN(0,0,24,80)
+DO CASE
+   CASE OPCAO="R"
+      PAGREC:="R"
+   CASE OPCAO="P"
+      PAGREC:="P"
+ENDCASE
+DBF_PAGREC()
+DBF_CLIFOR()
+DBF_PLANO()
+DBF_CONFIG()
+DBF_PORTA()
+DBF_BANK()
+WINDOW(19,0,21,IF(OPCAO="R",53,43))
+WINDOW(IF(OPCAO="R",2,9),0,19,79)
+@ 20,IF(OPCAO="R",53,43) SAY CHR(219)
+SETCOLOR(CORTIT)
+DO CASE
+   CASE PAGREC="R"
+      @ 2,1 SAY "Contas … Receber"
+   CASE PAGREC="P"
+      @ 9,1 SAY "Contas … Pagar"
+ENDCASE
+PAGREC->(DBSEEK(OPCAO,.T.))
+DO WHILE .T.
+   SETCOLOR(CORTEX+","+CORBAR+",,,"+CORDES)
+   CODIGO  :=PAGREC->CODIGO_V
+   CLIFOR  :=PAGREC->CLIFOR_V
+   DOCEXT  :=PAGREC->DOCEXT_V
+   DESC    :=PAGREC->DESC_V
+   DOCINT  :=PAGREC->DOCINT_V
+   DATEXT  :=PAGREC->DATEXT_V
+   DATINT  :=PAGREC->DATINT_V
+   DATVEN  :=PAGREC->DATVEN_V
+   VALOR   :=PAGREC->VALOR_V
+   CODPLA  :=PAGREC->CODPLA_V
+   BOLETO  :=PAGREC->BOLETO_V
+   CODBANBO:=PAGREC->CODBANBO_V
+   DUPLICA :=PAGREC->DUPLICA_V
+   CODBANDU:=PAGREC->CODBANDU_V
+   COBCHQ  :=PAGREC->COBCHQ_V
+   CBCODBAN:=PAGREC->CBCODBAN_V
+   COBBANCO:=PAGREC->COBBANCO_V
+   COBAGEN :=PAGREC->COBAGEN_V
+   COBCONTA:=PAGREC->COBCONTA_V
+   CODPORTA:=PAGREC->CODPORTA_V
+   @ IF(OPCAO="R",03,10),02 SAY "Registrado por : "+PAGREC->NOMSEN_V
+   @ IF(OPCAO="R",04,11),02 SAY "C¢digo      : "+CODIGO
+   CLIFOR->(DBSETORDER(1))
+   DO CASE
+      CASE LEFT(PAGREC,1)="P"
+         @ 12,2 SAY "Fornecedor  : "+CLIFOR+" - "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->NOME_V,SPACE(50))
+      CASE LEFT(PAGREC,1)="R"
+         @ 05,2 SAY "Cliente     : "+CLIFOR+" - "+IF(CLIFOR->(DBSEEK(CLIFOR)),CLIFOR->NOME_V,SPACE(50))
+   ENDCASE
+   @ IF(OPCAO="R",6,13),01 TO IF(OPCAO="R",6,13),78
+   @ IF(OPCAO="R",7,14),02 SAY "Doc.Externo : "+DOCEXT
+   @ IF(OPCAO="R",7,14),28 SAY "Data do Doc.Externo : " + DTOC(DATEXT)
+   @ IF(OPCAO="R",8,15),02 SAY "Descri‡ao   : "+DESC
+   @ IF(OPCAO="R",9,16),02 SAY "Doc.Interno : "+DOCINT
+   @ IF(OPCAO="R",9,16),28 SAY "Data do Doc.Interno : " + DTOC(DATINT)
+   @ IF(OPCAO="R",10,17),02 SAY "Valor       : "+TRANSFORM(VALOR,"@R 999,999,999.99")
+   @ IF(OPCAO="R",10,17),32 SAY "Plano de Conta: "+CODPLA+" - "+IF(PLANO->(DBSEEK(CODPLA)),PLANO->NOME_V,SPACE(10))
+   @ IF(OPCAO="R",11,18),02 SAY "Vencimento  : "+DTOC(DATVEN)
+   IF OPCAO="R"
+      @ 11,32 SAY               "Portador      : "+CODPORTA+" - "+IF(PORTA->(DBSEEK(CODPORTA)),PORTA->NOME_V,SPACE(15))
+      @ 12,01 TO 12,78
+      @ 13,01 SAY PADC("Cobran‡a"+IF(PAGREC->PROTESTO_V="S"," T¡TULO PROTESTADO",""),78) COLOR CORTIT
+      @ 14,01 TO 14,78
+   ENDIF
+   IF OPCAO="R"
+         IF EMPTY(BOLETO) .AND. EMPTY(DUPLICA) .AND. EMPTY(COBCHQ)
+            @ 15,01 say "  Üßßß Ûßßß ÛÜ   ÜÛ   Ûßßßß ÛßßßÛ ÛßßßÛ ÛßßßßÛ    ÛÛ    ÛÛ  Û Ûßßßß    ÛÛ    "
+            @ 16,01 SAY "   ÛÜ  ÛÜ   Û ßÜß Û   Û     Û   Û ÛÜÜÜß ÛÜÜÜÜß   Û  Û   Û Û Û Û       Û  Û   "
+            @ 17,01 SAY "     Û Ûß   Û     Û   Û     Û   Û Û   Û ÛßÜ     Û ßß Û  Û  ÛÛ Û      Û ßß Û  "
+            @ 18,01 SAY "  ÜÜÛ  ÛÜÜÜ Û     Û   ÛÜÜÜÜ ÛÜÜÜÛ ÛÜÜÜÛ Û  ÛÜÜ Û      Û Û   Û ßßßÛß Û      Û "
+         ELSE
+            @ 15,01 CLEAR TO 18,78
+            @ 15,02 SAY "Boleto    :" COLOR IF(!EMPTY(BOLETO),CORTIT,CORTEX)
+            @ 15,14 SAY BOLETO
+            @ 15,35 SAY "Banco : "+IF(BANK->(DBSEEK(CODBANBO)),BANK->NOME_V,SPACE(10))
+            @ 16,02 SAY "Duplicata :" COLOR IF(!EMPTY(DUPLICA),CORTIT,CORTEX)
+            @ 16,14 SAY DUPLICA
+            @ 16,35 SAY "Banco : "+IF(BANK->(DBSEEK(CODBANDU)),BANK->NOME_V,SPACE(10))
+            @ 17,02 SAY "Cheque    :" COLOR IF(!EMPTY(COBCHQ),CORTIT,CORTEX)
+            @ 17,14 SAY COBCHQ
+            @ 17,21 SAY "Banco   : "+CBCODBAN+" "+COBBANCO
+            @ 18,21 SAY "Agˆncia : "+COBAGEN+"  Conta Corrente : "+COBCONTA
+         ENDIF
+   ENDIF
+   @ 20,1  PROMPT " Incluir "
+   @ 20,10 PROMPT " Buscar "
+   @ 20,18 PROMPT " Alterar "
+   @ 20,27 PROMPT " Apagar "
+   @ 20,35 PROMPT " Repete "
+   IF OPCAO="R"
+      @ 20,43 PROMPT " Cobran‡a "
+   ENDIF
+   MENU TO OP   
+   DO CASE
+      CASE OP=1
+         IPAGREC(OPCAO)
+      CASE OP=2
+         BPAGREC(OPCAO)
+      CASE OP=3
+         APAGREC(OPCAO)
+      CASE OP=4
+         EPAGREC(OPCAO)
+      CASE OP=5
+         RPAGREC(OPCAO)
+      CASE OP=6
+         COBRANCA()
+      OTHERWISE
+         EXIT
+   ENDCASE
+ENDDO
+PAGREC->(DBCLOSEAREA())
+PLANO->(DBCLOSEAREA())
+CLIFOR->(DBCLOSEAREA())
+CONFIG->(DBCLOSEAREA())
+BANK->(DBCLOSEAREA())
+PORTA->(DBCLOSEAREA())
+RESTSCREEN(0,0,24,80,TELA)
+CLOSEWIN(9,0,19,79)
+RETURN(.T.)
